@@ -1,0 +1,5 @@
+ovos-audio
+ovos_plugin_common_play>=1.1.4, <2.0.0
+hivemind-core
+hivemind_bus_client>=0.2.0,<1.0.0
+hivemind-plugin-manager>=0.3.0,<1.0.0
