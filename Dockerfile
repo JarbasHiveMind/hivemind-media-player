@@ -10,7 +10,7 @@ ENV DEBIAN_FRONTEND noninteractive
 SHELL ["/bin/bash", "-c"]
 
 RUN apt-get update \
-  && apt-get install -y --no-install-recommends git curl python3-dev python3-pip python3-venv vim python3-wheel g++ mpv build-essential libatomic1 alsa-utils libasound2-plugins flac libportaudio2 pulseaudio-utils pipewire pipewire-alsa mpg123 music123 sox swig\
+  && apt-get install -y --no-install-recommends git curl python3-dev python3-pip python3-venv vim python3-wheel g++ vlc build-essential libatomic1 alsa-utils libasound2-plugins flac libportaudio2 pulseaudio-utils pipewire pipewire-alsa mpg123 music123 sox swig\
   && c_rehash \
   && useradd --no-log-init $USER -m -c "HiveMind user" \
   && python3 -m venv /home/${USER}/.venv \
@@ -35,9 +35,9 @@ COPY --chown=${USER}:${USER} . /tmp/hivemind-player-protocol
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
 RUN if [ "${ALPHA}" == "true" ]; then \
-  pip3 --no-cache-dir install /tmp/hivemind-player-protocol[extras] hivemind-redis-database hivemind-http-protocol --pre; \
+  pip3 --no-cache-dir install /tmp/hivemind-player-protocol[extras] hivemind-redis-database hivemind-http-protocol ahocorasick-ner --pre; \
   else \
-  pip3 --no-cache-dir install /tmp/hivemind-player-protocol[extras] hivemind-redis-database hivemind-http-protocol; \
+  pip3 --no-cache-dir install /tmp/hivemind-player-protocol[extras] hivemind-redis-database hivemind-http-protocol ahocorasick-ner; \
   fi \
   && mkdir -p ${HOME}/.config/{hivemind,hivemind-core} ${HOME}/.local/{hivemind,share/hivemind} \
   && rm -rf /tmp/requirements.txt
