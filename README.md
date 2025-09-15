@@ -1,4 +1,4 @@
-# HiveMind Player Protocol
+# HiveMind Media Player
 
 This project allows you to turn any device into a media player that can be controlled remotely. It achieves this by using **HiveMind** to connect and control the **Open Voice OS (OVOS)** audio stack remotely.
 
@@ -106,7 +106,7 @@ Here is an example configuration:
 In this example, **OCP** is configured as the main audio backend, with a preference for using players like **MPV** or **VLC**. Specific `vlc` and `mpv` players are also configured for reference. This shows the flexibility of the `ovos-audio` stack to handle various playback plugins.
 
 
------
+---
 
 ## Security and Access Keys
 
@@ -148,11 +148,9 @@ You must repeat this command for every message listed in the **Permissions** sec
 
 ---
 
----
 
 ## Permissions
 
-For the system to work correctly and securely, you need to explicitly allow certain messages to be passed through `hivemind-core`. These permissions are essential for controlling the player device.
 
 ### `ovos-audio`
 
@@ -205,8 +203,6 @@ If you're not using OCP, these messages provide a direct way to control the unde
 
 *(optional for platform/hardware plugins)*
 
-The **PHAL (Platform Hardware Abstraction Layer)** messages are used for interacting with the device's hardware, like checking its status.
-
   * `mycroft.phal.is_alive`
   * `mycroft.phal.is_ready`
 
@@ -214,7 +210,7 @@ The **PHAL (Platform Hardware Abstraction Layer)** messages are used for interac
 
 *(optional for volume control)*
 
-If you want to control the system's volume, you'll need to allow these specific ALSA plugin messages.
+If you want to control the system's volume, you'll need to allow these specific volume control messages.
 
   * `mycroft.volume.get`
   * `mycroft.volume.set`

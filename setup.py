@@ -58,7 +58,7 @@ setup(
     extras_require={
         "extras": required("extras.txt")
     },
-    url='https://github.com/JarbasHiveMind/hivemind-player-protocol',
+    url='https://github.com/JarbasHiveMind/hivemind-media-player',
     license='Apache-2.0',
     author='JarbasAI',
     author_email='jarbas@openvoiceos.com',
