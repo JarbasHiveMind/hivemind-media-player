@@ -19,6 +19,8 @@ services:
       dockerfile: Dockerfile
     logging: *default-logging
     tty: true
+    devices:
+      - /dev/snd
     environment:
       UMASK: 002
       TZ: ${TIMEZONE}
