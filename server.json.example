@@ -9,17 +9,11 @@
     "network_protocol": {
         "hivemind-websocket-plugin": {
             "host": "0.0.0.0",
-            "port": 5778,
-            "ssl": false,
-            "cert_dir": "/home/miro/.local/share/hivemind",
-            "cert_name": "hivemind"
+            "port": 5778
         },
         "hivemind-http-plugin": {
             "host": "0.0.0.0",
-            "port": 5779,
-            "ssl": false,
-            "cert_dir": "/home/miro/.local/share/hivemind",
-            "cert_name": "hivemind"
+            "port": 5779
         }
     },
 
