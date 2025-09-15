@@ -23,12 +23,6 @@
         "active": true,
         "initial_volume": 100,
         "low_volume": 50
-      },
-      "mpv": {
-        "type": "mpv",
-        "active": true,
-        "initial_volume": 100,
-        "low_volume": 50
       }
     }
   }
