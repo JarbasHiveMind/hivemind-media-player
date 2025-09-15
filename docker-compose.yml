@@ -1,0 +1,53 @@
+---
+x-logging: &default-logging
+  driver: json-file
+  options:
+    mode: non-blocking
+    max-buffer-size: 4m
+    max-size: "200m"
+    max-file: "1"
+
+services:
+
+  hivemind_media_player:
+    container_name: hivemind_media_player
+    hostname: hivemind_media_player
+    image: ovos/hivemind_media_player
+    restart: always
+    build:
+      context: .
+      dockerfile: Dockerfile
+    logging: *default-logging
+    tty: true
+    devices:
+      - /dev/snd
+    environment:
+      UMASK: 002
+      TZ: ${TIMEZONE}
+      XDG_RUNTIME_DIR: $XDG_RUNTIME_DIR
+      PULSE_SERVER: unix:${XDG_RUNTIME_DIR}/pulse/native
+      PULSE_COOKIE: /home/${HIVEMIND_USER}/.config/pulse/cookie
+      DBUS_SESSION_BUS_ADDRESS: unix:path=${XDG_RUNTIME_DIR}/bus
+    volumes:
+      - ~/.config/pulse/cookie:/home/${HIVEMIND_USER}/.config/pulse/cookie:ro
+      - ${XDG_RUNTIME_DIR}/pipewire-0:${XDG_RUNTIME_DIR}/pipewire-0:ro
+      - ${XDG_RUNTIME_DIR}/pulse:${XDG_RUNTIME_DIR}/pulse:ro
+      - ${OVOS_CONFIG_FOLDER}:/home/${HIVEMIND_USER}/.config/mycroft
+      - ${HIVEMIND_PLAYER_CONFIG_FOLDER}:/home/${HIVEMIND_USER}/.config/hivemind-core:z
+      - ${HIVEMIND_STATE_FOLDER}:~/.local/state/hivemind
+    ports:
+      - ${HIVEMIND_PLAYER_WS_PORT}:5678
+      - ${HIVEMIND_PLAYER_HTTP_PORT}:5679
+    depends_on:
+      hivemind_redis:
+        condition: service_started
+
+  hivemind_redis:
+    restart: always
+    container_name: hivemind_redis
+    image: redis
+    ports:
+      - ${HIVEMIND_REDIS_PORT}:6379
+    volumes:
+      - ${HIVEMIND_PLAYER_CONFIG_FOLDER}/redis.conf:/usr/local/etc/redis/redis.conf
+      - ${HIVEMIND_PLAYER_CONFIG_FOLDER}/redis:/data

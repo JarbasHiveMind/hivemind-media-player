@@ -1,0 +1,41 @@
+{
+    "agent_protocol": {
+        "module": "hivemind-player-agent-plugin",
+        "hivemind-player-agent-plugin": {}
+    },
+    "binary_protocol": {
+        "module": null
+    },
+    "network_protocol": {
+        "hivemind-websocket-plugin": {
+            "host": "0.0.0.0",
+            "port": 5778
+        },
+        "hivemind-http-plugin": {
+            "host": "0.0.0.0",
+            "port": 5779
+        }
+    },
+
+    "database": {
+      "module": "hivemind-redis-db-plugin",
+      "hivemind-redis-db-plugin": {
+        "name": "clients",
+        "subfolder": "hivemind-core",
+        "host": "0.0.0.0",
+        "port": 6379
+      }
+    },
+
+    "binarize": false,
+    "allowed_encodings": [
+        "JSON-B64",
+        "JSON-URLSAFE-B64",
+        "JSON-B32",
+        "JSON-HEX"
+    ],
+    "allowed_ciphers": [
+        "CHACHA20-POLY1305",
+        "AES-GCM"
+    ]
+}
