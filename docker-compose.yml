@@ -32,6 +32,7 @@ services:
       - ${XDG_RUNTIME_DIR}/pulse:${XDG_RUNTIME_DIR}/pulse:ro
       - ${OVOS_CONFIG_FOLDER}:/home/${HIVEMIND_USER}/.config/mycroft
       - ${HIVEMIND_PLAYER_CONFIG_FOLDER}:/home/${HIVEMIND_USER}/.config/hivemind-core:z
+      - ${HIVEMIND_STATE_FOLDER}:~/.local/state/hivemind
     ports:
       - ${HIVEMIND_PLAYER_WS_PORT}:5678
       - ${HIVEMIND_PLAYER_HTTP_PORT}:5679
