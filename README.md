@@ -218,3 +218,87 @@ If you want to control the system's volume, you'll need to allow these specific 
   * `mycroft.volume.decrease`
   * `mycroft.volume.mute`
   * `mycroft.volume.unmute`
+
+---
+
+### hivemind-player-ctl
+
+The `hivemind-player-ctl.py` script provides a simple command-line interface (CLI) to remotely control your HiveMind-enabled media player.  The only requirements are `hivemind_bus_client` and `click`.
+
+The script requires an `Access Key` and `Password` to connect to `hivemind-core`. You can either provide these credentials as command-line arguments or, for convenience, let the script read them from a saved identity file. Refer to the **Access Keys** section of this README for instructions on generating these credentials.
+
+#### General Command Structure
+
+All commands follow the same pattern: you invoke the script with the necessary authentication flags, followed by the specific command you wish to execute. To see a list of all available commands, use the `--help` flag:
+
+```bash
+python hivemind-player-ctl.py --help
+```
+
+#### Examples
+
+Here are some common ways to use the script:
+
+**1. Playing a Media File**
+To start playback of a specific URI (e.g., an MP3 file on a web server), use the `play` command:
+
+```bash
+python hivemind-player-ctl.py --key <your_key> --password <your_password> play "http://example.com/audio/test.mp3"
+```
+
+*(Note: Replace `<your_key>` and `<your_password>` with your actual credentials)*
+
+**2. Controlling Playback**
+Control playback using the dedicated commands. If your credentials are saved in an identity file, you can omit the `--key` and `--password` flags for a simpler command:
+
+```bash
+# Pause the current track
+python hivemind-player-ctl.py pause
+
+# Resume playback
+python hivemind-player-ctl.py resume
+
+# Skip to the next track
+python hivemind-player-ctl.py next
+
+# Go back to the previous track
+python hivemind-player-ctl.py prev
+```
+
+**3. Shuffle and Repeat**
+Enable or disable shuffle and repeat modes using the specific subcommands:
+
+```bash
+# Enable shuffle mode
+python hivemind-player-ctl.py shuffle.set
+
+# Disable shuffle mode
+python hivemind-player-ctl.py shuffle.unset
+
+# Enable repeat-all mode
+python hivemind-player-ctl.py repeat.set
+
+# Enable repeat-one mode
+python hivemind-player-ctl.py repeat.one
+
+# Disable repeat
+python hivemind-player-ctl.py repeat.unset
+```
+
+**4. Using the Interactive Shell**
+For continuous control without having to re-run the script for every command, use the `interactive` command. This opens a dedicated shell where you can type commands like `play`, `pause`, and `next`.
+
+```bash
+python hivemind-player-ctl.py interactive
+```
+
+You can then type commands directly into the prompt:
+
+```
+== Connected to HiveMind. Type 'quit' to exit.
+Commands: play <uri>, pause, resume, next, prev, shuffle.<set|unset>, repeat.<set|unset|one>, quit
+command: play "https://example.com/audio/another_song.wav"
+command: pause
+command: next
+command: quit
+```
