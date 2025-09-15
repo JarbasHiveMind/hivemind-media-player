@@ -58,7 +58,7 @@ Next, you need to configure the audio player itself. The **ovos-audio** stack is
 
 Within this file, you'll find two key sections:
 
-  * `"Audio"`: This is where you configure the specific audio players you want to use, such as **OCP (Open Voice OS Common Play)**, **VLC**, or others.
+  * `"Audio"`: This is where you configure the specific audio players you want to use.
   * `"tts"`: This section is for configuring the **text-to-speech** module, which allows the device to speak.
 
 The HiveMind player exposes a standalone `ovos-audio` under `hivemind-core`. This means all existing TTS and player plugins for OpenVoiceOS should work! Please refer to the OpenVoiceOS project for more information.
