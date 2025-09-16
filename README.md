@@ -17,6 +17,8 @@ By running both of these, you can send standard **Open Voice OS Common Play (OCP
 
 One of the most powerful uses of this protocol is to integrate your HiveMind players with **Home Assistant** 🏡 and **Music Assistant**. This allows you to turn any device you set up into a media player that can be controlled directly from your smart home dashboard.
 
+![image](https://github.com/user-attachments/assets/394b9691-8102-4142-9c71-5ae87ffe3542)
+
 ![image](https://github.com/user-attachments/assets/9bb3bdba-bce0-47f5-b837-6f934eff67ef)
 
 ![image](https://github.com/user-attachments/assets/1b0adcb0-bb92-4125-82ee-36367ce2bf60)
