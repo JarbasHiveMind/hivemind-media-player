@@ -1,306 +1,229 @@
 # HiveMind Media Player
 
-This project allows you to turn any device into a media player that can be controlled remotely. It achieves this by using **HiveMind** to connect and control the **Open Voice OS (OVOS)** audio stack remotely.
+Turn any device into a remotely controlled OVOS media player via HiveMind.
 
-Essentially, you'll run two main components:
+`hivemind-media-player` ships a `HiveMindPlayerProtocol` — a HiveMind agent protocol
+plugin (`hivemind.agent.protocol`) that runs the OVOS audio stack (`ovos-audio` +
+optional `ovos-PHAL`) locally and exposes it to any HiveMind client. Remote
+controllers send standard OCP (Open Voice OS Common Play) messages over the HiveMind
+encrypted WebSocket; the player device handles playback locally.
 
-  * `hivemind-core`: The central hub that manages connections and messages. Think of it as the brain of your remote control system.
-  * `hivemind-player-agent`: This is a small plugin that turns the `hivemind-core` device into a media player.
+This is for devices that are **not** running a full OVOS instance — think a Raspberry
+Pi dedicated to being a networked speaker.
 
-By running both of these, you can send standard **Open Voice OS Common Play (OCP)** messages to the player device to control audio playback. For example, you can send a message to play a song, pause it, or skip to the next track.
+## Architecture
 
-> **Note:** This setup is designed for devices that are *not* already running Open Voice OS. It's perfect for things like a Raspberry Pi dedicated to being a speaker.
+```
+remote controller           HiveMind (encrypted WebSocket)    this device
+(Home Assistant,       <--------------------------------->    hivemind-core
+ hivemind-player-ctl,                                         + HiveMindPlayerProtocol
+ any OCP client)                                              + ovos-audio (TTS, OCP, VLC/MPV...)
+```
 
------
+The player agent answers **no** natural-language questions (`natural_language_query`
+yields only the end-of-query sentinel). Its sole role is to receive OCP/audio bus
+messages forwarded by `hivemind-core` and play them through the local audio stack.
 
-## Home Assistant / Music Assistant Integration
+## Install
 
-One of the most powerful uses of this protocol is to integrate your HiveMind players with **Home Assistant** 🏡 and **Music Assistant**. This allows you to turn any device you set up into a media player that can be controlled directly from your smart home dashboard.
+```bash
+pip install hivemind-player-protocol
+```
 
-![image](https://github.com/user-attachments/assets/394b9691-8102-4142-9c71-5ae87ffe3542)
+Optional extras (VLC, MPV backends):
 
-![image](https://github.com/user-attachments/assets/9bb3bdba-bce0-47f5-b837-6f934eff67ef)
+```bash
+pip install "hivemind-player-protocol[extras]"
+```
 
-![image](https://github.com/user-attachments/assets/1b0adcb0-bb92-4125-82ee-36367ce2bf60)
+Or from source:
 
-By using **hivemind-homeassistant**, your HiveMind player will show up in Home Assistant. From there, you can use **Music Assistant** to browse and play music from various sources in your new HiveMind-powered player.
+```bash
+git clone https://github.com/JarbasHiveMind/hivemind-media-player
+cd hivemind-media-player
+pip install -e .
+```
 
-**Related Projects:**
+## Quickstart
 
-  * [hivemind-homeassistant](https://github.com/JarbasHiveMind/hivemind-homeassistant): A component that allows HiveMind devices to be discovered and controlled within Home Assistant.
-  * [ovos-skill-music-assistant](https://github.com/HiveMindInsiders/ovos-skill-music-assistant): An OVOS skill that enables you to search for media in your Music Assistant libraries.
-  * [ovos-media-plugin-mass](https://github.com/HiveMindInsiders/ovos-media-plugin-mass): An OVOS plugin that allows you to control Music Assistant players directly.
+### 1. Configure hivemind-core
 
------
+Edit `~/.config/hivemind-core/server.json` on the player device:
 
-## Configuration
-
-To get started, you'll need to configure both `hivemind-core` and the `ovos-audio` stack.
-
-### `hivemind-core`
-
-The first step is to tell **HiveMind** which agent to use. You'll edit the `server.json` configuration file, typically located at `~/.config/hivemind-core/server.json`.
-
-```json5
+```json
 {
-    "agent_protocol": {
-        "module": "hivemind-player-agent-plugin",
-        "hivemind-player-agent-plugin": {}
-    }
+  "agent_protocol": {
+    "module": "hivemind-player-agent-plugin",
+    "hivemind-player-agent-plugin": {}
+  }
 }
 ```
 
-In this file, you'll set the `agent_protocol` module to `"hivemind-player-agent-plugin"`. This tells HiveMind to load the correct plugin for controlling the player device.
+### 2. Configure ovos-audio
 
------
+Edit `~/.config/mycroft/mycroft.conf` on the same device:
 
-### `ovos-audio`
-
-Next, you need to configure the audio player itself. The **ovos-audio** stack is part of the Open Voice OS ecosystem and handles all audio playback and text-to-speech (TTS) functions. You'll configure it by editing `mycroft.conf`, usually found at `~/.config/mycroft/mycroft.conf`.
-
-Within this file, you'll find two key sections:
-
-  * `"Audio"`: This is where you configure the specific audio players you want to use.
-  * `"tts"`: This section is for configuring the **text-to-speech** module, which allows the device to speak.
-
-The HiveMind player exposes a standalone `ovos-audio` under `hivemind-core`. This means all existing TTS and player plugins for OpenVoiceOS should work! Please refer to the OpenVoiceOS project for more information.
-
-Here is an example configuration:
-
-```json5
+```json
 {
-
   "play_wav_cmdline": "paplay %1",
   "play_mp3_cmdline": "mpg123 %1",
   "play_ogg_cmdline": "ogg123 -q %1",
-  
   "tts": {
     "module": "ovos-tts-plugin-server"
   },
-  
   "Audio": {
     "backends": {
       "OCP": {
         "type": "ovos_common_play",
         "preferred_audio_services": ["mpv", "vlc"],
-        "disable_mpris": true,
-        "dbus_type": "session",
-        "manage_external_players": false,
         "active": true
       },
-      "vlc": {
-        "type": "vlc",
-        "active": true,
-        "initial_volume": 100,
-        "low_volume": 50
-      },
-      "mpv": {
-        "type": "mpv",
-        "active": true,
-        "initial_volume": 100,
-        "low_volume": 50
-      }
+      "vlc": { "type": "vlc", "active": true },
+      "mpv": { "type": "mpv",  "active": true }
     }
   }
 }
 ```
 
-In this example, **OCP** is configured as the main audio backend, with a preference for using players like **MPV** or **VLC**. Specific `vlc` and `mpv` players are also configured for reference. This shows the flexibility of the `ovos-audio` stack to handle various playback plugins.
+### 3. Create a client credential
 
-
----
-
-## Security and Access Keys
-
-To ensure only authorized devices can control your media player, **HiveMind** uses a robust security and permissions system. You will need to create and configure an access key for your controlling device. This acts as a set of credentials, allowing it to connect to and send commands to `hivemind-core`.
-
-### Step 1: Create a New Client
-
-First, use the `hivemind-core add-client` command to generate a unique set of credentials. You'll need the `Access Key` and `Password` from this output to connect your controlling device later.
+On the player device (where `hivemind-core` will run):
 
 ```bash
-$ hivemind-core add-client 
-Database backend: JsonDB
-Credentials added to database!
-
-Node ID: 3
-Friendly Name: HiveMind-Node-2
-Access Key: 57e488946808014168d9237c11e68959
-Password: a60319726ca815102f7c5ff88527ec37
-Encryption Key: 588816c6ba5477c3
-WARNING: Encryption Key is deprecated, only use if your client does not support password
+hivemind-core add-client
+# note the Access Key and Password printed
 ```
 
-Keep these credentials secure\! You'll use them to authenticate your controlling device.
-
-### Step 2: Grant Permissions
-
-Once the client is created, you must explicitly grant it permission to send specific types of messages. The HiveMind permissions system operates on a "deny by default" principle, meaning you have to allow every message type you want to use.
-
-Use the `hivemind-core allow-msg` command to grant these permissions. The command requires two arguments: the message type (e.g., `"speak"`) and the `Node ID` of the client you just created.
-
-For example, to allow your client (`Node ID: 3`) to trigger the text-to-speech engine (`"speak"`), you would run:
+### 4. Grant OCP permissions
 
 ```bash
-$ hivemind-core allow-msg "speak" 3
-Allowed 'speak' for HiveMind-Node-2
+# replace 3 with your Node ID from add-client
+hivemind-core allow-msg "ovos.common_play.play" 3
+hivemind-core allow-msg "ovos.common_play.pause" 3
+hivemind-core allow-msg "ovos.common_play.resume" 3
+hivemind-core allow-msg "ovos.common_play.stop" 3
+hivemind-core allow-msg "ovos.common_play.next" 3
+hivemind-core allow-msg "ovos.common_play.previous" 3
+hivemind-core allow-msg "speak" 3
 ```
 
-You must repeat this command for every message listed in the **Permissions** section below. This ensures your controlling device has all the necessary privileges to manage the media player.
+See [Permissions](#permissions) for the full list.
 
----
+### 5. Set the identity on the controller
 
+On the device that will send commands:
+
+```bash
+hivemind-client set-identity \
+  --key <access_key> --password <password> \
+  --host <player_device_ip> --port 5678 --siteid player
+```
+
+### 6. Start hivemind-core on the player device
+
+```bash
+hivemind-core listen
+```
+
+### 7. Control playback
+
+```bash
+python hivemind-player-ctl.py play "http://example.com/audio/track.mp3"
+python hivemind-player-ctl.py pause
+python hivemind-player-ctl.py resume
+python hivemind-player-ctl.py next
+```
+
+## Home Assistant / Music Assistant Integration
+
+With [hivemind-homeassistant](https://github.com/JarbasHiveMind/hivemind-homeassistant),
+HiveMind player devices appear as media players in Home Assistant. Music Assistant can
+then browse and play music to them.
+
+Related projects:
+- [hivemind-homeassistant](https://github.com/JarbasHiveMind/hivemind-homeassistant)
+- [ovos-skill-music-assistant](https://github.com/HiveMindInsiders/ovos-skill-music-assistant)
+- [ovos-media-plugin-mass](https://github.com/HiveMindInsiders/ovos-media-plugin-mass)
+
+## hivemind-player-ctl
+
+`hivemind-player-ctl.py` is a CLI to control a running player. It requires only
+`hivemind_bus_client` and `click`.
+
+```
+Usage: python hivemind-player-ctl.py [OPTIONS] COMMAND
+
+Options:
+  --key TEXT       Access key (or read from identity file)
+  --password TEXT  Password (or read from identity file)
+
+Commands:
+  play URI          Start playback of a URI
+  pause             Pause
+  resume            Resume
+  stop              Stop
+  next              Next track
+  prev              Previous track
+  shuffle.set       Enable shuffle
+  shuffle.unset     Disable shuffle
+  repeat.set        Enable repeat-all
+  repeat.one        Enable repeat-one
+  repeat.unset      Disable repeat
+  interactive       Interactive shell
+```
 
 ## Permissions
 
+### Core audio
 
-### `ovos-audio`
+| Message | Purpose |
+|---|---|
+| `speak` | TTS output |
+| `mycroft.audio.is_alive` | Health check |
+| `mycroft.audio.is_ready` | Readiness check |
+| `mycroft.stop` | Stop all audio |
 
-These messages are required for core audio functionality, including text-to-speech and general playback status.
+### OCP (Open Voice OS Common Play)
 
-  * `speak`
-  * `mycroft.audio.is_alive`
-  * `mycroft.audio.is_ready`
-  * `mycroft.audio.speak.status`
-  * `mycroft.stop`
+| Message | Purpose |
+|---|---|
+| `ovos.common_play.play` | Start playback |
+| `ovos.common_play.pause` | Pause |
+| `ovos.common_play.resume` | Resume |
+| `ovos.common_play.stop` | Stop |
+| `ovos.common_play.next` | Next track |
+| `ovos.common_play.previous` | Previous track |
+| `ovos.common_play.player.status` | Query player status |
+| `ovos.common_play.track_info` | Query track info |
+| `ovos.common_play.playlist.queue` | Queue a track |
+| `ovos.common_play.playlist.clear` | Clear the queue |
+| `ovos.common_play.set_track_position` | Seek |
+| `ovos.common_play.shuffle.set` | Enable shuffle |
+| `ovos.common_play.shuffle.unset` | Disable shuffle |
+| `ovos.common_play.repeat.set` | Enable repeat |
+| `ovos.common_play.repeat.unset` | Disable repeat |
+| `ovos.common_play.repeat.one` | Repeat one |
 
-#### OCP (Open Voice OS Common Play)
+### PHAL (optional)
 
-These are the primary messages used to control media playback, covering actions like playing, pausing, and managing playlists.
+| Message | Purpose |
+|---|---|
+| `mycroft.phal.is_alive` | PHAL health |
+| `mycroft.phal.is_ready` | PHAL readiness |
+| `mycroft.volume.get` | Query volume |
+| `mycroft.volume.set` | Set volume |
+| `mycroft.volume.increase` | Volume up |
+| `mycroft.volume.decrease` | Volume down |
+| `mycroft.volume.mute` | Mute |
+| `mycroft.volume.unmute` | Unmute |
 
-  * `ovos.common_play.player.status`
-  * `ovos.common_play.track_info`
-  * `ovos.common_play.get_track_length`
-  * `ovos.common_play.get_track_position`
-  * `ovos.common_play.playlist.queue`
-  * `ovos.common_play.play`
-  * `ovos.common_play.resume`
-  * `ovos.common_play.pause`
-  * `ovos.common_play.stop`
-  * `ovos.common_play.previous`
-  * `ovos.common_play.next`
-  * `ovos.common_play.set_track_position`
-  * `ovos.common_play.playlist.clear`
-  * `ovos.common_play.shuffle.set`
-  * `ovos.common_play.shuffle.unset`
-  * `ovos.common_play.repeat.set`
-  * `ovos.common_play.repeat.unset`
-  * `ovos.common_play.repeat.one`
+## Documentation
 
-#### Audio Service
+- [`docs/architecture.md`](docs/architecture.md) — how the player protocol fits into
+  HiveMind.
+- [`docs/configuration.md`](docs/configuration.md) — configuration reference.
+- [`docs/permissions.md`](docs/permissions.md) — full permissions reference.
 
-*(only if enabled manually — for systems without the OCP Audio Plugin)*
+## License
 
-If you're not using OCP, these messages provide a direct way to control the underlying audio service.
-
-  * `mycroft.audio.service.play`
-  * `mycroft.audio.service.resume`
-  * `mycroft.audio.service.pause`
-  * `mycroft.audio.service.stop`
-  * `mycroft.audio.service.prev`
-  * `mycroft.audio.service.next`
-  * `mycroft.audio.service.set_track_position`
-
-### PHAL
-
-*(optional for platform/hardware plugins)*
-
-  * `mycroft.phal.is_alive`
-  * `mycroft.phal.is_ready`
-
-#### ovos-phal-plugin-alsa
-
-*(optional for volume control)*
-
-If you want to control the system's volume, you'll need to allow these specific volume control messages.
-
-  * `mycroft.volume.get`
-  * `mycroft.volume.set`
-  * `mycroft.volume.increase`
-  * `mycroft.volume.decrease`
-  * `mycroft.volume.mute`
-  * `mycroft.volume.unmute`
-
----
-
-### hivemind-player-ctl
-
-The `hivemind-player-ctl.py` script provides a simple command-line interface (CLI) to remotely control your HiveMind-enabled media player.  The only requirements are `hivemind_bus_client` and `click`.
-
-The script requires an `Access Key` and `Password` to connect to `hivemind-core`. You can either provide these credentials as command-line arguments or, for convenience, let the script read them from a saved identity file. Refer to the **Access Keys** section of this README for instructions on generating these credentials.
-
-#### General Command Structure
-
-All commands follow the same pattern: you invoke the script with the necessary authentication flags, followed by the specific command you wish to execute. To see a list of all available commands, use the `--help` flag:
-
-```bash
-python hivemind-player-ctl.py --help
-```
-
-#### Examples
-
-Here are some common ways to use the script:
-
-**1. Playing a Media File**
-To start playback of a specific URI (e.g., an MP3 file on a web server), use the `play` command:
-
-```bash
-python hivemind-player-ctl.py --key <your_key> --password <your_password> play "http://example.com/audio/test.mp3"
-```
-
-*(Note: Replace `<your_key>` and `<your_password>` with your actual credentials)*
-
-**2. Controlling Playback**
-Control playback using the dedicated commands. If your credentials are saved in an identity file, you can omit the `--key` and `--password` flags for a simpler command:
-
-```bash
-# Pause the current track
-python hivemind-player-ctl.py pause
-
-# Resume playback
-python hivemind-player-ctl.py resume
-
-# Skip to the next track
-python hivemind-player-ctl.py next
-
-# Go back to the previous track
-python hivemind-player-ctl.py prev
-```
-
-**3. Shuffle and Repeat**
-Enable or disable shuffle and repeat modes using the specific subcommands:
-
-```bash
-# Enable shuffle mode
-python hivemind-player-ctl.py shuffle.set
-
-# Disable shuffle mode
-python hivemind-player-ctl.py shuffle.unset
-
-# Enable repeat-all mode
-python hivemind-player-ctl.py repeat.set
-
-# Enable repeat-one mode
-python hivemind-player-ctl.py repeat.one
-
-# Disable repeat
-python hivemind-player-ctl.py repeat.unset
-```
-
-**4. Using the Interactive Shell**
-For continuous control without having to re-run the script for every command, use the `interactive` command. This opens a dedicated shell where you can type commands like `play`, `pause`, and `next`.
-
-```bash
-python hivemind-player-ctl.py interactive
-```
-
-You can then type commands directly into the prompt:
-
-```
-== Connected to HiveMind. Type 'quit' to exit.
-Commands: play <uri>, pause, resume, next, prev, shuffle.<set|unset>, repeat.<set|unset|one>, quit
-command: play "https://example.com/audio/another_song.wav"
-command: pause
-command: next
-command: quit
-```
+Apache 2.0.
