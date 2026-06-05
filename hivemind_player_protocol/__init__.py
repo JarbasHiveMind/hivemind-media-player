@@ -40,6 +40,12 @@ class HiveMindPlayerProtocol(AgentProtocol):
         self.bus.on("message", self.handle_internal_mycroft)  # catch all
 
     # mycroft handlers  - from master -> slave
+    def natural_language_query(self, utterance: str, lang: str):
+        """A media-player agent answers no natural-language questions; it
+        declines (yields only the end-of-query sentinel) so the node escalates
+        the query upstream to an agent that can answer."""
+        yield None
+
     def handle_send(self, message: Message):
         """ovos wants to send a HiveMessage
 
