@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "hivemind-player-protocol"
+description = "HiveMind media player agent protocol"
+readme = "README.md"
+authors = [{ name = "jarbasAI", email = "jarbasai@mailfence.com" }]
+license = "Apache-2.0"
+requires-python = ">=3.10"
+dynamic = ["version", "dependencies"]
+
+[project.urls]
+Homepage = "https://github.com/JarbasHiveMind/hivemind-media-player"
+
+[project.optional-dependencies]
+test = ["pytest"]
+
+[project.entry-points."hivemind.agent.protocol"]
+"hivemind-player-agent-plugin" = "hivemind_player_protocol:HiveMindPlayerProtocol"
+
+[tool.setuptools]
+packages = ["hivemind_player_protocol"]
+include-package-data = true
+
+[tool.setuptools.dynamic]
+version = { attr = "hivemind_player_protocol.version.__version__" }
+dependencies = { file = ["requirements.txt"] }
