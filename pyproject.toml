@@ -15,7 +15,10 @@ dynamic = ["version", "dependencies"]
 Homepage = "https://github.com/JarbasHiveMind/hivemind-media-player"
 
 [project.optional-dependencies]
-test = ["pytest"]
+test = [
+    "pytest",
+    "hivescope @ git+https://github.com/JarbasHiveMind/hivescope@dev",
+]
 
 [project.entry-points."hivemind.agent.protocol"]
 "hivemind-player-agent-plugin" = "hivemind_player_protocol:HiveMindPlayerProtocol"
