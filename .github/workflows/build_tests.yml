@@ -10,8 +10,9 @@ jobs:
       python_versions: '["3.10", "3.11", "3.12", "3.13"]'
       install_extras: 'test'
       test_path: 'tests/'
-      # hivescope is prerelease-only on PyPI and the main `pip install wheel[test]`
-      # runs without --pre, so pre-install it here; it pulls a compatible
-      # prerelease hivemind-core (pinning hivemind-core explicitly backtracks onto
-      # a newer alpha with conflicting deps).
-      pre_install_pip: '--pre hivescope'
+      # Pre-install the prerelease deps the main (non --pre) `pip install wheel[test]`
+      # can't resolve: hivescope (alpha-only) which pulls a compatible hivemind-core,
+      # and ovos-plugin-common-play's 1.3.3a1 alpha — only the alpha relaxed the
+      # ovos-bus-client cap to <3.0.0 (the latest stable, 1.3.1, still caps <2.0.0
+      # and conflicts with hivemind-core's bus-client 2.x; see ovos-ocp-audio-plugin#194).
+      pre_install_pip: '--pre hivescope ovos-plugin-common-play'
