@@ -136,11 +136,11 @@ def test_unauthorized_ocp_command_is_denied(media_topology):
     assert not fired, (
         f"Unauthorized OCP '{not_granted}' should have been denied but hit the media-player bus"
     )
-    # And hivemind-core informed the satellite of the denial. The denial
-    # notification is delivered asynchronously over the simulated topology, so
-    # allow a generous timeout — loaded CI runners are much slower than a local
-    # box (where this arrives in well under a second).
-    assert denied.wait(timeout=30), (
+    # And hivemind-core informed the satellite of the denial (the
+    # policy-admission chain emits hive.policy.denied; requires hivemind-core
+    # >=4.6, pinned in the test extra). Delivered async over the simulated
+    # topology, so allow a little headroom.
+    assert denied.wait(timeout=10), (
         "satellite never received 'hive.policy.denied' for the unauthorized OCP command"
     )
 
@@ -175,7 +175,7 @@ def test_media_response_routes_back_to_satellite(media_topology):
     )
     player.bus.emit(status)
 
-    assert got.wait(timeout=30), (
+    assert got.wait(timeout=10), (
         f"satellite never received '{OCP_STATUS}' routed back from the media player. "
         f"Inbound at satellite: {[r.msg_type for r in satellite.recorder.records if r.direction == 'in']}"
     )
@@ -216,4 +216,4 @@ def test_media_response_isolated_from_other_satellites(media_topology):
         {"destination": [target_peer]},
     ))
 
-    assert s0_hit.wait(timeout=30), "target satellite S0 should have received the media message"
+    assert s0_hit.wait(timeout=10), "target satellite S0 should have received the media message"
