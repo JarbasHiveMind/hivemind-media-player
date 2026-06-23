@@ -27,6 +27,10 @@ dependencies = [
     # relaxed it to <3.0.0 — pin the prerelease floor to guide resolution onto
     # the bus-client 2.x line (until OCP/opm cut stable 2.x releases).
     "ovos-plugin-manager>=2.6.1a1,<3.0.0",
+    # ovos-workshop's bus-client-2.x compat is in the 8.x prerelease line (stable
+    # 2.4–3.1 cap ovos-bus-client<2.0.0); pulled transitively by OCP with a loose
+    # floor, so pin it onto the 2.x line.
+    "ovos-workshop>=8.2.1a1,<9.0.0",
 ]
 
 [project.urls]
