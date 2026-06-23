@@ -22,6 +22,11 @@ dependencies = [
     # 0.9.x is the bus-client 2.x line (ovos-bus-client 2.x); prerelease floor.
     "hivemind-bus-client>=0.9.2a1,<1.0.0",
     "hivemind-plugin-manager>=0.3.0,<1.0.0",
+    # OCP pulls ovos-plugin-manager with a loose floor; stable 2.2.0 still caps
+    # ovos-bus-client<2.0.0, so pip backtracks onto old capped versions. 2.6.1a1
+    # relaxed it to <3.0.0 — pin the prerelease floor to guide resolution onto
+    # the bus-client 2.x line (until OCP/opm cut stable 2.x releases).
+    "ovos-plugin-manager>=2.6.1a1,<3.0.0",
 ]
 
 [project.urls]
