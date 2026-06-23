@@ -19,7 +19,7 @@ test = [
     "pytest",
     # in-process HiveMind topology simulator; also supplies hivemind-core (the
     # AGPL host this plugin imports from), keeping it out of the runtime deps.
-    "hivescope>=0.5.0a2",
+    "hivescope>=0.5.1a1",
     # The e2e suite needs hivemind-core's policy-admission chain (the ACL
     # `hive.policy.denied` notification, added in 4.6.x) AND the agent-bus
     # forward-injection fix that landed in 4.6.2a1 (4.6.1a1 never delivers the
