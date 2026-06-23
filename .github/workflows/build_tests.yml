@@ -10,3 +10,6 @@ jobs:
       python_versions: '["3.10", "3.11", "3.12", "3.13"]'
       install_extras: 'test'
       test_path: 'tests/'
+      # hivescope + hivemind-core are prerelease-only on PyPI; the main
+      # `pip install wheel[test]` runs without --pre, so pre-install them here.
+      pre_install_pip: '--pre hivescope hivemind-core'
