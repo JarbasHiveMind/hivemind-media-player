@@ -17,7 +17,9 @@ Homepage = "https://github.com/JarbasHiveMind/hivemind-media-player"
 [project.optional-dependencies]
 test = [
     "pytest",
-    "hivescope @ git+https://github.com/JarbasHiveMind/hivescope@dev",
+    # in-process HiveMind topology simulator; also supplies hivemind-core (the
+    # AGPL host this plugin imports from), keeping it out of the runtime deps.
+    "hivescope>=0.5.0a2",
 ]
 
 [project.entry-points."hivemind.agent.protocol"]
