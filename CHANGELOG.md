@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.0.0a3](https://github.com/JarbasHiveMind/hivemind-media-player/tree/0.0.0a3) (2026-06-23)
+
+[Full Changelog](https://github.com/JarbasHiveMind/hivemind-media-player/compare/0.0.0a2...0.0.0a3)
+
+**Merged pull requests:**
+
+- test: hivescope e2e for OCP/media agent routing [\#8](https://github.com/JarbasHiveMind/hivemind-media-player/pull/8) ([JarbasAl](https://github.com/JarbasAl))
+- chore: Configure Renovate [\#2](https://github.com/JarbasHiveMind/hivemind-media-player/pull/2) ([renovate[bot]](https://github.com/apps/renovate))
+
 ## [0.0.0a2](https://github.com/JarbasHiveMind/hivemind-media-player/tree/0.0.0a2) (2026-06-20)
 
 [Full Changelog](https://github.com/JarbasHiveMind/hivemind-media-player/compare/669ab8ae00ae2e1cc3c09a82c20e19c7066fbd27...0.0.0a2)
