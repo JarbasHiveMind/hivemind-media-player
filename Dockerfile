@@ -34,13 +34,10 @@ COPY --chown=${USER}:${USER} . /tmp/hivemind-player-protocol
 
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
-RUN if [ "${ALPHA}" == "true" ]; then \
-  pip3 --no-cache-dir install /tmp/hivemind-player-protocol[extras] hivemind-redis-database hivemind-http-protocol ahocorasick-ner --pre; \
-  else \
-  pip3 --no-cache-dir install /tmp/hivemind-player-protocol[extras] hivemind-redis-database hivemind-http-protocol ahocorasick-ner; \
-  fi \
-  && mkdir -p ${HOME}/.config/{hivemind,hivemind-core} ${HOME}/.local/{hivemind,share/hivemind} \
-  && rm -rf /tmp/requirements.txt
+# Prerelease deps resolve from their min-version floors in pyproject (the 2.x
+# bus-client line), so no --pre is needed.
+RUN pip3 --no-cache-dir install "/tmp/hivemind-player-protocol[extras]" hivemind-redis-database hivemind-http-protocol ahocorasick-ner \
+  && mkdir -p ${HOME}/.config/{hivemind,hivemind-core} ${HOME}/.local/{hivemind,share/hivemind}
 
 ENTRYPOINT ["/bin/bash", "/usr/local/bin/entrypoint.sh"]
 

@@ -44,6 +44,21 @@ cd hivemind-media-player
 pip install -e .
 ```
 
+### Dependencies
+
+The whole stack rides the **`ovos-bus-client` 2.x line** (HiveMind core 4.6.x
+requires it). That line, and the OVOS components that have been updated to ride
+it (`ovos-audio`, OCP, `ovos-plugin-manager`, `ovos-workshop`), are currently
+published as **prereleases**. `pyproject.toml` pins each dependency to its
+*prerelease floor* (e.g. `ovos-bus-client>=2.0.0a3`), which is enough for a
+plain `pip install` to resolve the right versions — **no `--pre` flag is
+needed**. Do not add `--pre`; it is the floor pins that opt into the
+prereleases, package by package, while keeping resolution deterministic.
+
+`hivemind-core` itself (AGPL) is **not** a runtime dependency — the plugin only
+imports its `AgentProtocol` base. The host process supplies `hivemind-core`; the
+test suite pulls it in via the `[e2e]` extra.
+
 ## Quickstart
 
 ### 1. Configure hivemind-core
@@ -216,6 +231,25 @@ Commands:
 | `mycroft.volume.decrease` | Volume down |
 | `mycroft.volume.mute` | Mute |
 | `mycroft.volume.unmute` | Unmute |
+
+## Running the tests
+
+The suite is **end-to-end**: it stands up a real `hivemind-core` master
+in-process and drives the real player plugin over a real `HiveMessageBusClient`
+(via [`hivescope`](https://github.com/JarbasHiveMind/hivescope)), asserting that
+remote `play` / `pause` / `stop` control commands round-trip from a satellite,
+through the deny-by-default ACL, to the player. **The audio playback backend is
+mocked** (OCP and the legacy audio service are disabled, so no real audio plugin
+is ever loaded and nothing touches an audio device or the network).
+
+```bash
+pip install -e ".[test]"   # pulls hivescope + in-process hivemind-core ([e2e])
+pytest tests/
+```
+
+The heavyweight e2e hosts live in the `[e2e]` extra; `[test]` includes them plus
+the test runner. `hivescope` and `hivemind-core` are required test dependencies
+— the suite never `importorskip`s them.
 
 ## Documentation
 

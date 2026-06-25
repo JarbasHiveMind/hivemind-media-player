@@ -3,15 +3,31 @@
 These tests wire the real ``HiveMindPlayerProtocol`` (the OCP/media agent
 protocol plugin) as a hivescope master's ``agent_protocol`` and drive it
 through a fully simulated, in-process HiveMind topology: a satellite connects,
-completes the handshake, and exchanges OCP/media bus messages with the master.
+completes the handshake, and exchanges OCP/media bus messages with the master
+over a real ``HiveMessageBusClient``.
+
+The whole stack is real **except the audio playback backend**:
+
+* **hivemind-core** runs in-process as the master (real ACL, real
+  policy-admission chain, real client isolation).
+* The **player plugin** boots a real ``ovos-audio`` ``PlaybackService`` on its
+  internal OVOS bus and routes messages to/from satellites for real.
+* The **OCP / audio backend is mocked**: the plugin is constructed with the OCP
+  player and the legacy audio service disabled (``disable_ocp=True``,
+  ``enable_old_audioservice=False``), so *no real audio plugin (mpv/vlc/…) is
+  ever loaded* and nothing touches an audio device or the network. A lightweight
+  recorder is registered on the plugin's bus in place of the OCP backend, so the
+  remote ``play`` / ``pause`` / ``stop`` control verbs are captured and asserted
+  instead of producing sound. This keeps the tests about *remote-control
+  routing* — the only thing the satellite path is responsible for.
 
 What is exercised end-to-end:
 
-* **Forward path** — a satellite sends an OCP command (``ovos.common_play.*``)
-  as a HiveMind ``BUS`` message. hivemind-core's deny-by-default ACL admits it
-  (the satellite is granted ``allowed_types``), and the master injects it onto
-  the plugin's internal OVOS bus, where the plugin's ``PlaybackService``/OCP
-  stack is listening.
+* **Forward / control path** — a satellite sends OCP control commands
+  (``ovos.common_play.{play,pause,stop}``) as HiveMind ``BUS`` messages.
+  hivemind-core's deny-by-default ACL admits them (the satellite is granted
+  ``allowed_types``), and the master injects them onto the plugin's internal
+  OVOS bus, where the mocked playback backend records them.
 * **Reverse path** — a media message emitted on the plugin's internal OVOS bus
   with ``destination == [satellite_peer]`` is forwarded back to that satellite
   by the plugin's ``handle_internal_mycroft`` routing, wrapped as a ``BUS``
@@ -19,17 +35,15 @@ What is exercised end-to-end:
 * **ACL** — a satellite that was *not* granted an OCP message type has its
   command denied by hivemind-core and it never reaches the agent bus.
 
-The plugin boots a real ``PlaybackService`` (OCP) on a ``FakeBus`` in
-``__post_init__`` — no audio backend is required for these routing assertions.
-
-hivescope is a required ``test`` dependency (see pyproject ``[test]`` extra);
-it is never optional/importorskip'd here.
+hivescope + hivemind-core are required ``e2e``/``test`` dependencies (see the
+pyproject ``[e2e]`` extra); they are never optional/importorskip'd here.
 """
 import threading
+import time
 
 import pytest
 from ovos_bus_client.message import Message
-from hivemind_bus_client.message import HiveMessage, HiveMessageType
+from hivemind_bus_client.message import HiveMessageType
 
 from hivescope.topology import TopologyBuilder
 from hivescope.assertions import assert_bus_message_routed
@@ -37,32 +51,74 @@ from hivescope.assertions import assert_bus_message_routed
 from hivemind_player_protocol import HiveMindPlayerProtocol
 
 
-# OCP / media-player message types the satellite is allowed to send.
-# Mirrors docs/permissions.md (the types granted via `hivemind-core allow-msg`).
+# OCP / media-player remote-control message types the satellite is allowed to
+# send. Mirrors docs/permissions.md (the types granted via `hivemind-core
+# allow-msg`).
 OCP_PLAY = "ovos.common_play.play"
 OCP_PAUSE = "ovos.common_play.pause"
+OCP_STOP = "ovos.common_play.stop"
 OCP_STATUS = "ovos.common_play.player.status"
 
-ALLOWED_OCP_TYPES = [OCP_PLAY, OCP_PAUSE, OCP_STATUS]
+# every control verb the satellite drives, plus the status channel used for the
+# reverse (player -> satellite) path.
+ALLOWED_OCP_TYPES = [OCP_PLAY, OCP_PAUSE, OCP_STOP, OCP_STATUS]
+
+
+class MockOCPBackend:
+    """Stand-in for the OCP / audio playback backend.
+
+    Registered directly on the plugin's internal OVOS bus, it records the
+    remote-control commands that reach the player instead of loading a real
+    audio plugin or producing any sound. This is what makes the suite safe to
+    run headless in CI: the real routing is exercised, the playback is faked.
+    """
+
+    def __init__(self, bus):
+        self.events = []  # list[(msg_type, data)]
+        self._lock = threading.Lock()
+        for mtype in (OCP_PLAY, OCP_PAUSE, OCP_STOP):
+            bus.on(mtype, self._record)
+
+    def _record(self, message):
+        with self._lock:
+            self.events.append((message.msg_type, message.data))
+
+    def types_seen(self):
+        with self._lock:
+            return [t for t, _ in self.events]
+
+    def wait_for(self, msg_type, timeout=10):
+        """Block until ``msg_type`` has been recorded (the command is delivered
+        async over the simulated topology)."""
+        start = time.monotonic()
+        while time.monotonic() - start < timeout:
+            if msg_type in self.types_seen():
+                return True
+            time.sleep(0.05)
+        return msg_type in self.types_seen()
 
 
 @pytest.fixture
 def media_topology():
     """A started single-satellite topology whose master runs the real
-    HiveMindPlayerProtocol as its agent protocol.
+    HiveMindPlayerProtocol as its agent protocol, with the OCP/audio backend
+    mocked out.
 
     The satellite is granted the OCP message types in ``ALLOWED_OCP_TYPES``
     (hivemind-core is deny-by-default whitelist-only, so without this grant the
     agent would never be invoked).
     """
     builder = TopologyBuilder()
-    # The plugin instantiates PlaybackService/OCP on its FakeBus here.
-    player = HiveMindPlayerProtocol()
+    # Boot the real plugin but with NO real playback: OCP disabled and the
+    # legacy audio service off, so no audio backend plugin is ever loaded.
+    player = HiveMindPlayerProtocol(disable_ocp=True, enable_old_audioservice=False)
+    # Swap in the recording backend on the plugin's own internal bus.
+    backend = MockOCPBackend(player.bus)
     master = builder.add_master("M0", agent_protocol=player)
     builder.add_satellite("S0", upstream=master, allowed_types=list(ALLOWED_OCP_TYPES))
     builder.start_all()
     try:
-        yield builder, player
+        yield builder, player, backend
     finally:
         builder.stop_all()
 
@@ -79,16 +135,12 @@ def _bus_messages_to_agent(master, ovos_type):
     ]
 
 
-def test_satellite_ocp_command_reaches_media_player(media_topology):
+def test_satellite_play_command_reaches_media_player(media_topology):
     """A satellite OCP 'play' command routes through the master and lands on
-    the media-player plugin's internal OVOS bus."""
-    builder, player = media_topology
+    the media-player plugin's (mocked) playback backend."""
+    builder, player, backend = media_topology
     master = builder.get_master("M0")
     satellite = builder.get_satellite("S0")
-
-    # Capture the message as the plugin's own PlaybackService bus sees it.
-    received = []
-    player.bus.on(OCP_PLAY, lambda m: received.append(m))
 
     satellite.send(Message(
         OCP_PLAY,
@@ -105,20 +157,45 @@ def test_satellite_ocp_command_reaches_media_player(media_topology):
         f"All injects: {[r.msg_type for r in master.recorder.records if r.direction == 'bus_inject']}"
     )
 
-    # The plugin's own PlaybackService bus actually fired the OCP handler chain.
-    assert received, f"PlaybackService bus never received '{OCP_PLAY}'"
+    # The mocked playback backend actually received the play command (no real
+    # audio plugin was loaded, so this is a pure routing assertion).
+    assert backend.wait_for(OCP_PLAY), (
+        f"playback backend never received '{OCP_PLAY}'; saw {backend.types_seen()}"
+    )
+
+
+def test_play_pause_stop_round_trip(media_topology):
+    """The full remote-control verb set (play -> pause -> stop) round-trips
+    from the satellite, through hivemind-core's ACL, to the mocked playback
+    backend in order."""
+    builder, player, backend = media_topology
+    satellite = builder.get_satellite("S0")
+
+    satellite.send(Message(OCP_PLAY, {"media": {"uri": "file:///tmp/song.mp3"}}))
+    assert backend.wait_for(OCP_PLAY), f"play not delivered; saw {backend.types_seen()}"
+
+    satellite.send(Message(OCP_PAUSE, {}))
+    assert backend.wait_for(OCP_PAUSE), f"pause not delivered; saw {backend.types_seen()}"
+
+    satellite.send(Message(OCP_STOP, {}))
+    assert backend.wait_for(OCP_STOP), f"stop not delivered; saw {backend.types_seen()}"
+
+    # the three control verbs arrived, in command order.
+    seen = [t for t in backend.types_seen() if t in (OCP_PLAY, OCP_PAUSE, OCP_STOP)]
+    assert seen == [OCP_PLAY, OCP_PAUSE, OCP_STOP], (
+        f"control verbs out of order or missing: {seen}"
+    )
 
 
 def test_unauthorized_ocp_command_is_denied(media_topology):
     """An OCP type the satellite was NOT granted is denied by hivemind-core's
-    deny-by-default ACL and never reaches the media-player plugin's bus handlers.
+    deny-by-default ACL and never reaches the media-player plugin's backend.
 
     Note: hivescope records a ``bus_inject`` on every *attempt* (before the ACL
     check), so the meaningful signal is that the plugin's own OVOS bus never
     fired the handler and the satellite received a ``hive.policy.denied``.
     """
-    builder, player = media_topology
-    master = builder.get_master("M0")
+    builder, player, backend = media_topology
     satellite = builder.get_satellite("S0")
 
     not_granted = "ovos.common_play.next"  # deliberately absent from ALLOWED_OCP_TYPES
@@ -132,13 +209,13 @@ def test_unauthorized_ocp_command_is_denied(media_topology):
 
     satellite.send(Message(not_granted, {}))
 
-    # The ACL blocked it: the plugin's PlaybackService bus never saw the command.
+    # The ACL blocked it: the plugin's bus never saw the command.
     assert not fired, (
         f"Unauthorized OCP '{not_granted}' should have been denied but hit the media-player bus"
     )
     # And hivemind-core informed the satellite of the denial (the
     # policy-admission chain emits hive.policy.denied; requires hivemind-core
-    # >=4.6, pinned in the test extra). Delivered async over the simulated
+    # >=4.6, pinned in the e2e extra). Delivered async over the simulated
     # topology, so allow a little headroom.
     assert denied.wait(timeout=10), (
         "satellite never received 'hive.policy.denied' for the unauthorized OCP command"
@@ -149,8 +226,7 @@ def test_media_response_routes_back_to_satellite(media_topology):
     """A media bus message emitted on the plugin's OVOS bus with the satellite
     as its destination is forwarded back to that satellite as a BUS HiveMessage
     (the plugin's client-isolation reverse-routing seam)."""
-    builder, player = media_topology
-    master = builder.get_master("M0")
+    builder, player, backend = media_topology
     satellite = builder.get_satellite("S0")
 
     peer = satellite.peer
@@ -192,7 +268,7 @@ def test_media_response_routes_back_to_satellite(media_topology):
 def test_media_response_isolated_from_other_satellites(media_topology):
     """Client isolation: a media message destined for one satellite is not
     delivered to a second, unrelated satellite."""
-    builder, player = media_topology
+    builder, player, backend = media_topology
     master = builder.get_master("M0")
     s0 = builder.get_satellite("S0")
 

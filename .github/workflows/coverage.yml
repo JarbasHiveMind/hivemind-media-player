@@ -1,0 +1,12 @@
+name: Coverage
+on:
+  pull_request:
+    branches: [dev, master]
+  workflow_dispatch:
+jobs:
+  coverage:
+    uses: OpenVoiceOS/gh-automations/.github/workflows/coverage.yml@dev
+    with:
+      test_extras: 'test'
+      test_path: 'tests/'
+      coverage_source: 'hivemind_player_protocol'

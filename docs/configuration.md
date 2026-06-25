@@ -13,9 +13,24 @@
 }
 ```
 
-The `hivemind-player-agent-plugin` config block is currently empty — all audio
-configuration lives in `mycroft.conf`. Pass a non-empty dict if you need to
-override anything in the future.
+Audio configuration lives in `mycroft.conf`; the agent-plugin block is for the
+protocol itself. The plugin accepts these optional keys:
+
+| Key | Default | Purpose |
+|---|---|---|
+| `disable_ocp` | `false` | Skip loading the OCP backend (for OCP-less deployments, or to mock playback). |
+| `enable_old_audioservice` | *(OVOS config)* | Override whether the legacy pre-OCP `ovos-audio` AudioService is loaded. |
+
+```json
+{
+  "agent_protocol": {
+    "module": "hivemind-player-agent-plugin",
+    "hivemind-player-agent-plugin": {
+      "disable_ocp": false
+    }
+  }
+}
+```
 
 ## ovos-audio (`mycroft.conf`)
 

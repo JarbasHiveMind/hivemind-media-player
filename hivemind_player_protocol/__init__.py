@@ -1,5 +1,5 @@
 import dataclasses
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 
 from hivemind_bus_client.message import HiveMessage, HiveMessageType
 from hivemind_core.protocol import AgentProtocol
@@ -15,11 +15,33 @@ from ovos_utils.log import LOG
 class HiveMindPlayerProtocol(AgentProtocol):
     bus: FakeBus = dataclasses.field(default_factory=FakeBus)
     config: Dict[str, Any] = dataclasses.field(default_factory=lambda: Configuration().get("websocket", {}))
+    # Skip loading the OCP backend. Useful for OCP-less deployments and for
+    # tests that mock the playback backend (so no real audio plugin is loaded).
+    # Defaults to None so the ``config`` block (server.json) can set it; an
+    # explicit constructor value always wins.
+    disable_ocp: Optional[bool] = None
+    # Skip the legacy ovos-audio AudioService (the pre-OCP backend). ``None``
+    # defers to the ``config`` block, then to the OVOS
+    # ``enable_old_audioservice`` config value.
+    enable_old_audioservice: Optional[bool] = None
 
     def __post_init__(self):
+        # constructor args take precedence; otherwise read from the agent-plugin
+        # config block (server.json -> hivemind-player-agent-plugin).
+        if self.disable_ocp is None:
+            self.disable_ocp = self.config.get("disable_ocp", False)
+        if self.enable_old_audioservice is None:
+            self.enable_old_audioservice = self.config.get("enable_old_audioservice")
+
+        if self.enable_old_audioservice is not None:
+            # PlaybackService reads this top-level config key; override it so
+            # callers can boot the plugin without the legacy audio backend (and
+            # its plugins).
+            Configuration()["enable_old_audioservice"] = self.enable_old_audioservice
         self.playback = PlaybackService(
             bus=self.bus,
-            validate_source=False
+            validate_source=False,
+            disable_ocp=self.disable_ocp,
         )
         self.register_bus_handlers()
         try:

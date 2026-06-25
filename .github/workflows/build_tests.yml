@@ -8,5 +8,7 @@ jobs:
     uses: OpenVoiceOS/gh-automations/.github/workflows/build-tests.yml@dev
     with:
       python_versions: '["3.10", "3.11", "3.12", "3.13"]'
-      install_extras: 'test'
+      # the suite is end-to-end only: install the e2e hosts (hivescope +
+      # in-process hivemind-core) alongside the test runner.
+      install_extras: 'test,e2e'
       test_path: 'tests/'
