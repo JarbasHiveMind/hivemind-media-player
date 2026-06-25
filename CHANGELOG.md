@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.0.0a4](https://github.com/JarbasHiveMind/hivemind-media-player/tree/0.0.0a4) (2026-06-25)
+
+[Full Changelog](https://github.com/JarbasHiveMind/hivemind-media-player/compare/0.0.0a3...0.0.0a4)
+
+**Merged pull requests:**
+
+- modernize: current 2.x dep floors, e2e backend mocking, coverage CI, docs [\#10](https://github.com/JarbasHiveMind/hivemind-media-player/pull/10) ([JarbasAl](https://github.com/JarbasAl))
+
 ## [0.0.0a3](https://github.com/JarbasHiveMind/hivemind-media-player/tree/0.0.0a3) (2026-06-23)
 
 [Full Changelog](https://github.com/JarbasHiveMind/hivemind-media-player/compare/0.0.0a2...0.0.0a3)
