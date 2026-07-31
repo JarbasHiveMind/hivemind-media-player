@@ -41,11 +41,9 @@ protocol itself. The plugin accepts these optional keys:
   "play_wav_cmdline": "paplay %1",
   "play_mp3_cmdline": "mpg123 %1",
   "play_ogg_cmdline": "ogg123 -q %1",
-
   "tts": {
     "module": "ovos-tts-plugin-server"
   },
-
   "Audio": {
     "backends": {
       "OCP": {
@@ -79,7 +77,7 @@ full list.
 
 ## Docker
 
-A `docker-compose.yml` and `Dockerfile` are included for containerised deployment.
+A `docker-compose.yml` and `Dockerfile` are included for containerized deployment.
 Copy `.env.example` to `.env`, fill in the values, then:
 
 ```bash
@@ -87,3 +85,6 @@ docker compose up -d
 ```
 
 The container exposes port `5678` for HiveMind connections.
+
+---
+[← Architecture](architecture.md) · [Home](../README.md) · [Permissions →](permissions.md)

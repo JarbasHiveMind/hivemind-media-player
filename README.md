@@ -2,14 +2,14 @@
 
 Turn any device into a remotely controlled OVOS media player via HiveMind.
 
-`hivemind-media-player` ships a `HiveMindPlayerProtocol` — a HiveMind agent protocol
-plugin (`hivemind.agent.protocol`) that runs the OVOS audio stack (`ovos-audio` +
+`hivemind-media-player` ships `HiveMindPlayerProtocol`, a HiveMind agent protocol
+plugin (`hivemind.agent.protocol`) that runs the OVOS audio stack (`ovos-audio` and
 optional `ovos-PHAL`) locally and exposes it to any HiveMind client. Remote
 controllers send standard OCP (Open Voice OS Common Play) messages over the HiveMind
-encrypted WebSocket; the player device handles playback locally.
+encrypted WebSocket. The player device handles playback locally.
 
-This is for devices that are **not** running a full OVOS instance — think a Raspberry
-Pi dedicated to being a networked speaker.
+This is for devices that are **not** running a full OVOS instance. Think of a
+Raspberry Pi dedicated to being a networked speaker.
 
 ## Architecture
 
@@ -47,17 +47,18 @@ pip install -e .
 ### Dependencies
 
 The whole stack rides the **`ovos-bus-client` 2.x line** (HiveMind core 4.6.x
-requires it). That line, and the OVOS components that have been updated to ride
-it (`ovos-audio`, OCP, `ovos-plugin-manager`, `ovos-workshop`), are currently
-published as **prereleases**. `pyproject.toml` pins each dependency to its
-*prerelease floor* (e.g. `ovos-bus-client>=2.0.0a3`), which is enough for a
-plain `pip install` to resolve the right versions — **no `--pre` flag is
-needed**. Do not add `--pre`; it is the floor pins that opt into the
-prereleases, package by package, while keeping resolution deterministic.
+requires it). That line, and the OVOS components updated to ride it
+(`ovos-audio`, OCP, `ovos-plugin-manager`, `ovos-workshop`), are currently
+published as **prereleases**.
 
-`hivemind-core` itself (AGPL) is **not** a runtime dependency — the plugin only
-imports its `AgentProtocol` base. The host process supplies `hivemind-core`; the
-test suite pulls it in via the `[e2e]` extra.
+`pyproject.toml` pins each dependency to its *prerelease floor* (for example
+`ovos-bus-client>=2.0.0a3`). A plain `pip install` then resolves the right
+versions. **No `--pre` flag is needed.** Do not add `--pre`. The floor pins
+opt into the prereleases, package by package, and keep resolution deterministic.
+
+`hivemind-core` itself (AGPL) is **not** a runtime dependency. The plugin only
+imports its `AgentProtocol` base. The host process supplies `hivemind-core`.
+The test suite pulls it in through the `[e2e]` extra.
 
 ## Quickstart
 
@@ -167,11 +168,9 @@ Related projects:
 
 ```
 Usage: python hivemind-player-ctl.py [OPTIONS] COMMAND
-
 Options:
   --key TEXT       Access key (or read from identity file)
   --password TEXT  Password (or read from identity file)
-
 Commands:
   play URI          Start playback of a URI
   pause             Pause
@@ -206,15 +205,27 @@ Commands:
 | `ovos.common_play.pause` | Pause |
 | `ovos.common_play.resume` | Resume |
 | `ovos.common_play.stop` | Stop |
+
+| Message | Purpose |
+|---|---|
 | `ovos.common_play.next` | Next track |
 | `ovos.common_play.previous` | Previous track |
 | `ovos.common_play.player.status` | Query player status |
 | `ovos.common_play.track_info` | Query track info |
+
+| Message | Purpose |
+|---|---|
 | `ovos.common_play.playlist.queue` | Queue a track |
 | `ovos.common_play.playlist.clear` | Clear the queue |
 | `ovos.common_play.set_track_position` | Seek |
+
+| Message | Purpose |
+|---|---|
 | `ovos.common_play.shuffle.set` | Enable shuffle |
 | `ovos.common_play.shuffle.unset` | Disable shuffle |
+
+| Message | Purpose |
+|---|---|
 | `ovos.common_play.repeat.set` | Enable repeat |
 | `ovos.common_play.repeat.unset` | Disable repeat |
 | `ovos.common_play.repeat.one` | Repeat one |
@@ -225,8 +236,14 @@ Commands:
 |---|---|
 | `mycroft.phal.is_alive` | PHAL health |
 | `mycroft.phal.is_ready` | PHAL readiness |
+
+| Message | Purpose |
+|---|---|
 | `mycroft.volume.get` | Query volume |
 | `mycroft.volume.set` | Set volume |
+
+| Message | Purpose |
+|---|---|
 | `mycroft.volume.increase` | Volume up |
 | `mycroft.volume.decrease` | Volume down |
 | `mycroft.volume.mute` | Mute |
@@ -234,29 +251,31 @@ Commands:
 
 ## Running the tests
 
-The suite is **end-to-end**: it stands up a real `hivemind-core` master
+The suite is **end-to-end**. It stands up a real `hivemind-core` master
 in-process and drives the real player plugin over a real `HiveMessageBusClient`
-(via [`hivescope`](https://github.com/JarbasHiveMind/hivescope)), asserting that
-remote `play` / `pause` / `stop` control commands round-trip from a satellite,
-through the deny-by-default ACL, to the player. **The audio playback backend is
-mocked** (OCP and the legacy audio service are disabled, so no real audio plugin
-is ever loaded and nothing touches an audio device or the network).
+(through [`hivescope`](https://github.com/JarbasHiveMind/hivescope)). It asserts
+that remote `play`, `pause`, and `stop` control commands round-trip from a
+satellite, through the deny-by-default ACL, to the player.
+
+**The audio playback backend is mocked.** OCP and the legacy audio service are
+disabled, so no real audio plugin loads and nothing touches an audio device or
+the network.
 
 ```bash
 pip install -e ".[test]"   # pulls hivescope + in-process hivemind-core ([e2e])
 pytest tests/
 ```
 
-The heavyweight e2e hosts live in the `[e2e]` extra; `[test]` includes them plus
-the test runner. `hivescope` and `hivemind-core` are required test dependencies
-— the suite never `importorskip`s them.
+The heavyweight e2e hosts live in the `[e2e]` extra. `[test]` includes them plus
+the test runner. `hivescope` and `hivemind-core` are required test dependencies.
+The suite never `importorskip`s them.
 
 ## Documentation
 
-- [`docs/architecture.md`](docs/architecture.md) — how the player protocol fits into
+- [`docs/architecture.md`](docs/architecture.md): how the player protocol fits into
   HiveMind.
-- [`docs/configuration.md`](docs/configuration.md) — configuration reference.
-- [`docs/permissions.md`](docs/permissions.md) — full permissions reference.
+- [`docs/configuration.md`](docs/configuration.md): configuration reference.
+- [`docs/permissions.md`](docs/permissions.md): full permissions reference.
 
 ## License
 
