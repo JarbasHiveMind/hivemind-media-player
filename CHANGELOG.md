@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.0.0a5](https://github.com/JarbasHiveMind/hivemind-media-player/tree/0.0.0a5) (2026-07-31)
+
+[Full Changelog](https://github.com/JarbasHiveMind/hivemind-media-player/compare/0.0.0a4...0.0.0a5)
+
+**Merged pull requests:**
+
+- docs: rewrite README in Simplified Technical English [\#11](https://github.com/JarbasHiveMind/hivemind-media-player/pull/11) ([JarbasAl](https://github.com/JarbasAl))
+
 ## [0.0.0a4](https://github.com/JarbasHiveMind/hivemind-media-player/tree/0.0.0a4) (2026-06-25)
 
 [Full Changelog](https://github.com/JarbasHiveMind/hivemind-media-player/compare/0.0.0a3...0.0.0a4)
