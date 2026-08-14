@@ -11,6 +11,11 @@ encrypted WebSocket. The player device handles playback locally.
 This is for devices that are **not** running a full OVOS instance. Think of a
 Raspberry Pi dedicated to being a networked speaker.
 
+New to HiveMind? Read [docs/getting-started.md](docs/getting-started.md) —
+a from-scratch walkthrough covering what this actually does, install,
+the two config files, registering a client with `add-client` and the
+`allow-msg` whitelist, and verifying a play command round-trips.
+
 ## Architecture
 
 ```
