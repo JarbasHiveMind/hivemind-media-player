@@ -142,6 +142,18 @@ If nothing happens: check `docker logs` (or the process's stdout) for a
 message about a denied message type — that means step 3's `allow-msg`
 was skipped or targeted the wrong Node ID.
 
+## The admin panel
+
+HiveMind hubs that expose an admin web UI show a sign-in screen like this
+(from the project's reference deployment):
+
+![HiveMind admin panel sign-in screen](img/admin-panel-login.png)
+
+This session had no admin credentials for that instance, so this
+screenshot stops at the login screen — it was not guessed or bypassed.
+Once signed in, the panel lists connected clients, which is where you'd
+confirm this player device shows up after `add-client`.
+
 ## Related
 
 - [Architecture](architecture.md)
