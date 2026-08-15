@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.0.0a7](https://github.com/JarbasHiveMind/hivemind-media-player/tree/0.0.0a7) (2026-08-15)
+
+[Full Changelog](https://github.com/JarbasHiveMind/hivemind-media-player/compare/0.0.0a6...0.0.0a7)
+
+**Merged pull requests:**
+
+- docs: from-scratch getting-started guide [\#12](https://github.com/JarbasHiveMind/hivemind-media-player/pull/12) ([JarbasAl](https://github.com/JarbasAl))
+
 ## [0.0.0a6](https://github.com/JarbasHiveMind/hivemind-media-player/tree/0.0.0a6) (2026-08-15)
 
 [Full Changelog](https://github.com/JarbasHiveMind/hivemind-media-player/compare/0.0.0a5...0.0.0a6)
