@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.0.0a6](https://github.com/JarbasHiveMind/hivemind-media-player/tree/0.0.0a6) (2026-08-15)
+
+[Full Changelog](https://github.com/JarbasHiveMind/hivemind-media-player/compare/0.0.0a5...0.0.0a6)
+
+**Merged pull requests:**
+
+- docs: add AGENTS.md with per-repo agent conventions [\#13](https://github.com/JarbasHiveMind/hivemind-media-player/pull/13) ([JarbasAl](https://github.com/JarbasAl))
+
 ## [0.0.0a5](https://github.com/JarbasHiveMind/hivemind-media-player/tree/0.0.0a5) (2026-07-31)
 
 [Full Changelog](https://github.com/JarbasHiveMind/hivemind-media-player/compare/0.0.0a4...0.0.0a5)
