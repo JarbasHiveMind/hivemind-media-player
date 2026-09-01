@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.0.1a1](https://github.com/JarbasHiveMind/hivemind-media-player/tree/0.0.1a1) (2026-09-01)
+
+[Full Changelog](https://github.com/JarbasHiveMind/hivemind-media-player/compare/0.0.0a7...0.0.1a1)
+
+**Merged pull requests:**
+
+- fix\(deps\): raise floor pins to the proven HiveMind stack [\#14](https://github.com/JarbasHiveMind/hivemind-media-player/pull/14) ([JarbasAl](https://github.com/JarbasAl))
+
 ## [0.0.0a7](https://github.com/JarbasHiveMind/hivemind-media-player/tree/0.0.0a7) (2026-08-15)
 
 [Full Changelog](https://github.com/JarbasHiveMind/hivemind-media-player/compare/0.0.0a6...0.0.0a7)
