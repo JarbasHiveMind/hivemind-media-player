@@ -27,12 +27,16 @@ hivemind-core allow-msg "ovos.common_play.play" 3
 | `mycroft.audio.speak.status` | TTS status |
 | `mycroft.stop` | Stop all audio |
 
-### OCP (Open Voice OS Common Play)
+### OCP (Open Voice OS Common Play, served by the embedded ovos-media)
+
+Media control is `ovos.common_play.*` only; the legacy `mycroft.audio.service.*`
+verbs are not served by the embedded stack.
 
 | Message | Purpose |
 |---|---|
 | `ovos.common_play.play` | Start playback |
 | `ovos.common_play.pause` | Pause |
+| `ovos.common_play.play_pause` | Toggle play/pause |
 | `ovos.common_play.resume` | Resume |
 | `ovos.common_play.stop` | Stop |
 
@@ -40,7 +44,7 @@ hivemind-core allow-msg "ovos.common_play.play" 3
 |---|---|
 | `ovos.common_play.next` | Next track |
 | `ovos.common_play.previous` | Previous track |
-| `ovos.common_play.player.status` | Query player status |
+| `ovos.common_play.status` | Query player status (polled by hivemind-ma-player) |
 | `ovos.common_play.track_info` | Query current track info |
 
 | Message | Purpose |
@@ -48,22 +52,31 @@ hivemind-core allow-msg "ovos.common_play.play" 3
 | `ovos.common_play.get_track_length` | Query track duration |
 | `ovos.common_play.get_track_position` | Query playback position |
 | `ovos.common_play.set_track_position` | Seek to position |
+| `ovos.common_play.seek` | Seek by an offset |
 
 | Message | Purpose |
 |---|---|
 | `ovos.common_play.playlist.queue` | Add to queue |
 | `ovos.common_play.playlist.clear` | Clear queue |
+| `ovos.common_play.playlist.set` | Replace the queue |
 
 | Message | Purpose |
 |---|---|
 | `ovos.common_play.shuffle.set` | Enable shuffle |
 | `ovos.common_play.shuffle.unset` | Disable shuffle |
+| `ovos.common_play.shuffle.toggle` | Toggle shuffle |
 
 | Message | Purpose |
 |---|---|
-| `ovos.common_play.repeat.set` | Enable repeat-all |
+| `ovos.common_play.repeat.set` | Enable repeat |
 | `ovos.common_play.repeat.unset` | Disable repeat |
-| `ovos.common_play.repeat.one` | Repeat current track |
+| `ovos.common_play.repeat.toggle` | Toggle repeat |
+
+| Message | Purpose |
+|---|---|
+| `ovos.common_play.like` | Like the current track |
+| `ovos.common_play.unlike` | Unlike the current track |
+| `ovos.common_play.likes` | Query liked tracks |
 
 ### PHAL (optional)
 
@@ -87,23 +100,6 @@ Required only if `ovos-PHAL` is installed and used.
 | `mycroft.volume.decrease` | Volume down |
 | `mycroft.volume.mute` | Mute |
 | `mycroft.volume.unmute` | Unmute |
-
-### Audio Service (legacy, OCP-less deployments)
-
-Only needed when not using the OCP backend.
-
-| Message | Purpose |
-|---|---|
-| `mycroft.audio.service.play` | Play |
-| `mycroft.audio.service.resume` | Resume |
-| `mycroft.audio.service.pause` | Pause |
-| `mycroft.audio.service.stop` | Stop |
-
-| Message | Purpose |
-|---|---|
-| `mycroft.audio.service.prev` | Previous |
-| `mycroft.audio.service.next` | Next |
-| `mycroft.audio.service.set_track_position` | Seek |
 
 ---
 [← Configuration](configuration.md) · [Home](../README.md)

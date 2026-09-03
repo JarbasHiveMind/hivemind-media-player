@@ -18,10 +18,9 @@ dependencies = [
     # ovos-audio 1.2.2a1 relaxed its ovos-bus-client cap to <3.0.0 (bus-client 2.x);
     # stable 1.2.0 still caps <2.0.0. Prerelease floor so pip resolves the 2.x line.
     "ovos-audio>=1.2.2a1",
-    # OCP: only the 1.3.3a1 alpha relaxed the ovos-bus-client cap to <3.0.0;
-    # the prerelease floor lets pip resolve it (with the bus-client 2.x stack)
-    # under a plain install, no --pre. Stable 1.3.1 still caps <2.0.0.
-    "ovos-plugin-common-play>=1.3.3a1,<2.0.0",
+    # the embedded media daemon (OCP-native, replaces the legacy OCP/audio
+    # stack that used to be embedded here).
+    "ovos-media>=2.2.2a1,<3.0.0",
     "ovos-tts-plugin-server",
     # 1.0.x is the proven-working line against current hivemind-core (4.13.18a1
     # needs bus-client 1.0.x); the stale <1.0.0 cap blocked that resolution.
@@ -30,14 +29,15 @@ dependencies = [
     # the runtime needs the same plugin host, so pin its prerelease floor too
     # — otherwise pip can only see stale, capped versions.
     "hivemind-plugin-manager>=0.9.0a7",
-    # OCP pulls ovos-plugin-manager with a loose floor; stable 2.2.0 still caps
-    # ovos-bus-client<2.0.0, so pip backtracks onto old capped versions. 2.6.1a1
-    # relaxed it to <3.0.0 — pin the prerelease floor to guide resolution onto
-    # the bus-client 2.x line (until OCP/opm cut stable 2.x releases).
+    # ovos-media pulls ovos-plugin-manager with a loose floor; stable 2.2.0
+    # still caps ovos-bus-client<2.0.0, so pip backtracks onto old capped
+    # versions. 2.6.1a1 relaxed it to <3.0.0 — pin the prerelease floor to
+    # guide resolution onto the bus-client 2.x line (until opm cuts a stable
+    # 2.x release).
     "ovos-plugin-manager>=2.11.6a1,<3.0.0",
-    # ovos-workshop's bus-client-2.x compat is in the 8.x prerelease line (stable
-    # 2.4–3.1 cap ovos-bus-client<2.0.0); pulled transitively by OCP with a loose
-    # floor, so pin it onto the 2.x line.
+    # ovos-workshop's bus-client-2.x compat is in the 8.x prerelease line
+    # (stable 2.4–3.1 cap ovos-bus-client<2.0.0); pulled transitively with a
+    # loose floor, so pin it onto the 2.x line.
     "ovos-workshop>=8.2.1a1,<9.0.0",
     # hivemind-plugin-manager requires a prerelease json-database; without this
     # explicit floor pip can only see a stale, capped stable release. The
@@ -50,11 +50,10 @@ Homepage = "https://github.com/JarbasHiveMind/hivemind-media-player"
 
 [project.optional-dependencies]
 # Optional runtime backends for a fully-featured media-player device: a local
-# audio output plugin (VLC), OCP stream extractors (youtube/etc.), and the
-# PHAL hardware-abstraction layer for volume/system control.
+# audio output plugin for ovos-media (VLC), and the PHAL hardware-abstraction
+# layer for volume/system control.
 extras = [
-    "ovos-plugin-common-play[extractors]>=1.3.3a1,<2.0.0",
-    "ovos-plugin-vlc",
+    "ovos-media-plugin-vlc",
     "ovos-phal",
 ]
 # The end-to-end suite spins up a real hivemind-core master in-process and

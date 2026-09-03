@@ -16,7 +16,6 @@ Commands:
   pause          Pauses the current playback.
   play           Starts playback of the given URI.
   prev           Returns to the previous track in the playlist.
-  repeat.one     Enables repeat single-track mode.
   repeat.set     Enables repeat all mode.
   repeat.unset   Disables repeat mode.
   resume         Resumes the current playback.
@@ -113,7 +112,7 @@ def cli(ctx, key: str, password: str, host: str, port: int):
 def interactive(node: HiveMessageBusClient):
     """Launches an interactive shell to control the player."""
     print("== Connected to HiveMind. Type 'quit' to exit.")
-    print("Commands: play <uri>, pause, resume, next, prev, shuffle.<set|unset>, repeat.<set|unset|one>, quit")
+    print("Commands: play <uri>, pause, resume, next, prev, shuffle.<set|unset>, repeat.<set|unset>, quit")
 
     while True:
         try:
@@ -136,7 +135,7 @@ def interactive(node: HiveMessageBusClient):
             elif action == "next":
                 node.emit_mycroft(Message("ovos.common_play.next"))
             elif action == "prev":
-                node.emit_mycroft(Message("ovos.common_play.prev"))
+                node.emit_mycroft(Message("ovos.common_play.previous"))
             elif action == "shuffle.set":
                 node.emit_mycroft(Message("ovos.common_play.shuffle.set"))
             elif action == "shuffle.unset":
@@ -145,8 +144,6 @@ def interactive(node: HiveMessageBusClient):
                 node.emit_mycroft(Message("ovos.common_play.repeat.set"))
             elif action == "repeat.unset":
                 node.emit_mycroft(Message("ovos.common_play.repeat.unset"))
-            elif action == "repeat.one":
-                node.emit_mycroft(Message("ovos.common_play.repeat.one"))
             else:
                 print("Unknown command or missing argument")
         except KeyboardInterrupt:
@@ -202,7 +199,7 @@ def next_cmd(node: HiveMessageBusClient):
 def prev_cmd(node: HiveMessageBusClient):
     """Returns to the previous track in the playlist."""
     click.echo("Sending 'prev' command...")
-    node.emit_mycroft(Message("ovos.common_play.prev"))
+    node.emit_mycroft(Message("ovos.common_play.previous"))
     click.echo("Command sent.")
 
 
@@ -239,15 +236,6 @@ def repeat_unset(node: HiveMessageBusClient):
     """Disables repeat mode."""
     click.echo("Sending 'repeat.unset' command...")
     node.emit_mycroft(Message("ovos.common_play.repeat.unset"))
-    click.echo("Command sent.")
-
-
-@cli.command(name="repeat.one")
-@click.pass_obj
-def repeat_one(node: HiveMessageBusClient):
-    """Enables repeat single-track mode."""
-    click.echo("Sending 'repeat.one' command...")
-    node.emit_mycroft(Message("ovos.common_play.repeat.one"))
     click.echo("Command sent.")
 
 
