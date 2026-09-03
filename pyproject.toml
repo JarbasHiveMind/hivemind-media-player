@@ -62,7 +62,8 @@ extras = [
 # runner, and are wired in CI via the shared build-tests `[e2e]` install.
 e2e = [
     # in-process HiveMind topology simulator; also supplies hivemind-core (the
-    # AGPL host this plugin imports from), keeping it out of the runtime deps.
+    # host that loads this plugin, so client installs never drag in the full
+    # hub), keeping it out of the runtime deps.
     "hivescope>=0.7.2a1",
     # The e2e suite needs hivemind-core's policy-admission chain (the ACL
     # `hive.policy.denied` notification) AND the agent-bus forward-injection
