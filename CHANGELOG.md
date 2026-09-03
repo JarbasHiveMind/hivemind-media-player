@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.1.1a1](https://github.com/JarbasHiveMind/hivemind-media-player/tree/0.1.1a1) (2026-09-03)
+
+[Full Changelog](https://github.com/JarbasHiveMind/hivemind-media-player/compare/0.1.0a1...0.1.1a1)
+
+**Merged pull requests:**
+
+- fix: correct the hivemind-core license rationale comment [\#16](https://github.com/JarbasHiveMind/hivemind-media-player/pull/16) ([JarbasAl](https://github.com/JarbasAl))
+
 ## [0.1.0a1](https://github.com/JarbasHiveMind/hivemind-media-player/tree/0.1.0a1) (2026-09-03)
 
 [Full Changelog](https://github.com/JarbasHiveMind/hivemind-media-player/compare/0.0.1a1...0.1.0a1)
