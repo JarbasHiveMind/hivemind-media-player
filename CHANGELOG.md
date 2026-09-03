@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.1.0a1](https://github.com/JarbasHiveMind/hivemind-media-player/tree/0.1.0a1) (2026-09-03)
+
+[Full Changelog](https://github.com/JarbasHiveMind/hivemind-media-player/compare/0.0.1a1...0.1.0a1)
+
+**Merged pull requests:**
+
+- feat: embed ovos-media as the media daemon, PlaybackService kept for TTS only [\#15](https://github.com/JarbasHiveMind/hivemind-media-player/pull/15) ([JarbasAl](https://github.com/JarbasAl))
+
 ## [0.0.1a1](https://github.com/JarbasHiveMind/hivemind-media-player/tree/0.0.1a1) (2026-09-01)
 
 [Full Changelog](https://github.com/JarbasHiveMind/hivemind-media-player/compare/0.0.0a7...0.0.1a1)
