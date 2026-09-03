@@ -3,10 +3,12 @@
 Turn any device into a remotely controlled OVOS media player via HiveMind.
 
 `hivemind-media-player` ships `HiveMindPlayerProtocol`, a HiveMind agent protocol
-plugin (`hivemind.agent.protocol`) that runs the OVOS audio stack (`ovos-audio` and
-optional `ovos-PHAL`) locally and exposes it to any HiveMind client. Remote
-controllers send standard OCP (Open Voice OS Common Play) messages over the HiveMind
-encrypted WebSocket. The player device handles playback locally.
+plugin (`hivemind.agent.protocol`) that embeds `ovos-media` (the OCP-native media
+daemon) for playback and `ovos-audio` for TTS only, plus optional `ovos-PHAL`, and
+exposes it to any HiveMind client. Remote controllers send standard OCP (Open Voice
+OS Common Play) messages over the HiveMind encrypted WebSocket; the wire contract
+is unchanged regardless of which media backend is embedded underneath. The player
+device handles playback locally.
 
 This is for devices that are **not** running a full OVOS instance. Think of a
 Raspberry Pi dedicated to being a networked speaker.
@@ -22,12 +24,17 @@ the two config files, registering a client with `add-client` and the
 remote controller           HiveMind (encrypted WebSocket)    this device
 (Home Assistant,       <--------------------------------->    hivemind-core
  hivemind-player-ctl,                                         + HiveMindPlayerProtocol
- any OCP client)                                              + ovos-audio (TTS, OCP, VLC/MPV...)
+ any OCP client)                                              + ovos-media (playback, VLC/MPV...)
+                                                                + ovos-audio (TTS only)
 ```
 
 The player agent answers **no** natural-language questions (`natural_language_query`
-yields only the end-of-query sentinel). Its sole role is to receive OCP/audio bus
-messages forwarded by `hivemind-core` and play them through the local audio stack.
+yields only the end-of-query sentinel). Its sole role is to receive OCP bus
+messages forwarded by `hivemind-core` and play them through the embedded
+`ovos-media` daemon. Because a satellite's session is always namespaced by
+`hivemind-core` rather than left as the device-local `"default"` (HiveMind-Bridge-1
+§4), the embedded daemon is started to act on every authorized session — this
+device is a single dedicated player, not a multi-session host.
 
 ## Install
 
@@ -53,7 +60,7 @@ pip install -e .
 
 The whole stack rides the **`ovos-bus-client` 2.x line** (HiveMind core 4.6.x
 requires it). That line, and the OVOS components updated to ride it
-(`ovos-audio`, OCP, `ovos-plugin-manager`, `ovos-workshop`), are currently
+(`ovos-audio`, `ovos-media`, `ovos-plugin-manager`, `ovos-workshop`), are currently
 published as **prereleases**.
 
 `pyproject.toml` pins each dependency to its *prerelease floor* (for example
@@ -80,31 +87,31 @@ Edit `~/.config/hivemind-core/server.json` on the player device:
 }
 ```
 
-### 2. Configure ovos-audio
+### 2. Configure TTS and playback
 
-Edit `~/.config/mycroft/mycroft.conf` on the same device:
+Edit `~/.config/mycroft/mycroft.conf` on the same device: `tts` configures
+the embedded `ovos-audio` (TTS only), `media` configures the embedded
+`ovos-media` playback backends.
 
 ```json
 {
-  "play_wav_cmdline": "paplay %1",
-  "play_mp3_cmdline": "mpg123 %1",
-  "play_ogg_cmdline": "ogg123 -q %1",
   "tts": {
     "module": "ovos-tts-plugin-server"
   },
-  "Audio": {
-    "backends": {
-      "OCP": {
-        "type": "ovos_common_play",
-        "preferred_audio_services": ["mpv", "vlc"],
+  "media": {
+    "preferred_audio_services": ["vlc"],
+    "audio_players": {
+      "vlc": {
+        "module": "ovos-media-audio-plugin-vlc",
+        "aliases": ["VLC"],
         "active": true
-      },
-      "vlc": { "type": "vlc", "active": true },
-      "mpv": { "type": "mpv",  "active": true }
+      }
     }
   }
 }
 ```
+
+See [docs/configuration.md](docs/configuration.md) for the full reference.
 
 ### 3. Create a client credential
 
@@ -125,6 +132,7 @@ hivemind-core allow-msg "ovos.common_play.resume" 3
 hivemind-core allow-msg "ovos.common_play.stop" 3
 hivemind-core allow-msg "ovos.common_play.next" 3
 hivemind-core allow-msg "ovos.common_play.previous" 3
+hivemind-core allow-msg "ovos.common_play.status" 3
 hivemind-core allow-msg "speak" 3
 ```
 
@@ -186,7 +194,6 @@ Commands:
   shuffle.set       Enable shuffle
   shuffle.unset     Disable shuffle
   repeat.set        Enable repeat-all
-  repeat.one        Enable repeat-one
   repeat.unset      Disable repeat
   interactive       Interactive shell
 ```
@@ -202,12 +209,16 @@ Commands:
 | `mycroft.audio.is_ready` | Readiness check |
 | `mycroft.stop` | Stop all audio |
 
-### OCP (Open Voice OS Common Play)
+### OCP (Open Voice OS Common Play, served by the embedded ovos-media)
+
+Media control is `ovos.common_play.*` only; the legacy `mycroft.audio.service.*`
+verbs are not served by the embedded stack.
 
 | Message | Purpose |
 |---|---|
 | `ovos.common_play.play` | Start playback |
 | `ovos.common_play.pause` | Pause |
+| `ovos.common_play.play_pause` | Toggle play/pause |
 | `ovos.common_play.resume` | Resume |
 | `ovos.common_play.stop` | Stop |
 
@@ -215,25 +226,34 @@ Commands:
 |---|---|
 | `ovos.common_play.next` | Next track |
 | `ovos.common_play.previous` | Previous track |
-| `ovos.common_play.player.status` | Query player status |
+| `ovos.common_play.status` | Query player status (polled by hivemind-ma-player) |
 | `ovos.common_play.track_info` | Query track info |
 
 | Message | Purpose |
 |---|---|
 | `ovos.common_play.playlist.queue` | Queue a track |
 | `ovos.common_play.playlist.clear` | Clear the queue |
-| `ovos.common_play.set_track_position` | Seek |
+| `ovos.common_play.playlist.set` | Replace the queue |
+| `ovos.common_play.set_track_position` | Seek to position |
+| `ovos.common_play.seek` | Seek by an offset |
 
 | Message | Purpose |
 |---|---|
 | `ovos.common_play.shuffle.set` | Enable shuffle |
 | `ovos.common_play.shuffle.unset` | Disable shuffle |
+| `ovos.common_play.shuffle.toggle` | Toggle shuffle |
 
 | Message | Purpose |
 |---|---|
 | `ovos.common_play.repeat.set` | Enable repeat |
 | `ovos.common_play.repeat.unset` | Disable repeat |
-| `ovos.common_play.repeat.one` | Repeat one |
+| `ovos.common_play.repeat.toggle` | Toggle repeat |
+
+| Message | Purpose |
+|---|---|
+| `ovos.common_play.like` | Like the current track |
+| `ovos.common_play.unlike` | Unlike the current track |
+| `ovos.common_play.likes` | Query liked tracks |
 
 ### PHAL (optional)
 
@@ -262,9 +282,9 @@ in-process and drives the real player plugin over a real `HiveMessageBusClient`
 that remote `play`, `pause`, and `stop` control commands round-trip from a
 satellite, through the deny-by-default ACL, to the player.
 
-**The audio playback backend is mocked.** OCP and the legacy audio service are
-disabled, so no real audio plugin loads and nothing touches an audio device or
-the network.
+**The media playback backend is mocked.** The embedded `ovos-media` daemon is
+disabled (`disable_media=True`), so no real media backend plugin loads and
+nothing touches an audio device or the network.
 
 ```bash
 pip install -e ".[test]"   # pulls hivescope + in-process hivemind-core ([e2e])

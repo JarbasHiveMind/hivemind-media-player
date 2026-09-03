@@ -13,67 +13,66 @@
 }
 ```
 
-Audio configuration lives in `mycroft.conf`; the agent-plugin block is for the
-protocol itself. The plugin accepts these optional keys:
+Audio/media configuration lives in `mycroft.conf`; the agent-plugin block is
+for the protocol itself. The plugin forces `enable_old_audioservice=False`
+process-wide (overriding any value already in `mycroft.conf`) — the embedded
+stack serves media exclusively through `ovos-media`, so the legacy
+`ovos-audio` AudioService is never loaded. The plugin accepts these optional
+keys:
 
 | Key | Default | Purpose |
 |---|---|---|
-| `disable_ocp` | `false` | Skip loading the OCP backend (for OCP-less deployments, or to mock playback). |
-| `enable_old_audioservice` | *(OVOS config)* | Override whether the legacy pre-OCP `ovos-audio` AudioService is loaded. |
+| `disable_media` | `false` | Skip loading the embedded `ovos-media` daemon (for TTS-only deployments, or to mock playback). |
 
 ```json
 {
   "agent_protocol": {
     "module": "hivemind-player-agent-plugin",
     "hivemind-player-agent-plugin": {
-      "disable_ocp": false
+      "disable_media": false
     }
   }
 }
 ```
 
-## ovos-audio (`mycroft.conf`)
+## ovos-audio (`mycroft.conf`) — TTS only
 
 `~/.config/mycroft/mycroft.conf`:
 
 ```json
 {
-  "play_wav_cmdline": "paplay %1",
-  "play_mp3_cmdline": "mpg123 %1",
-  "play_ogg_cmdline": "ogg123 -q %1",
   "tts": {
     "module": "ovos-tts-plugin-server"
-  },
-  "Audio": {
-    "backends": {
-      "OCP": {
-        "type": "ovos_common_play",
-        "preferred_audio_services": ["mpv", "vlc"],
-        "disable_mpris": true,
-        "dbus_type": "session",
-        "manage_external_players": false,
-        "active": true
-      },
+  }
+}
+```
+
+Any TTS plugin for OpenVoiceOS works here. `Audio.backends` is not read (the
+embedded `ovos-audio` never loads AudioService backends); playback
+configuration belongs under `media`, below.
+
+## ovos-media (`mycroft.conf`) — playback
+
+```json
+{
+  "media": {
+    "preferred_audio_services": ["vlc"],
+    "audio_players": {
       "vlc": {
-        "type": "vlc",
-        "active": true,
-        "initial_volume": 100,
-        "low_volume": 50
-      },
-      "mpv": {
-        "type": "mpv",
-        "active": true,
-        "initial_volume": 100,
-        "low_volume": 50
+        "module": "ovos-media-audio-plugin-vlc",
+        "aliases": ["VLC"],
+        "active": true
       }
     }
   }
 }
 ```
 
-Any TTS and OCP audio backend plugin for OpenVoiceOS works here. Refer to the
-[OVOS documentation](https://openvoiceos.github.io/ovos-technical-manual/) for the
-full list.
+Any `opm.media.audio` / `opm.media.video` / `opm.media.web` backend plugin
+works here, declared under `media.audio_players` / `media.video_players` /
+`media.web_players` respectively, keyed by a local plugin name. Refer to
+[ovos-media's configuration reference](https://github.com/OpenVoiceOS/ovos-media/blob/dev/docs/configuration.md)
+for the full option set.
 
 ## Docker
 

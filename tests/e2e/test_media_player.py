@@ -6,20 +6,21 @@ through a fully simulated, in-process HiveMind topology: a satellite connects,
 completes the handshake, and exchanges OCP/media bus messages with the master
 over a real ``HiveMessageBusClient``.
 
-The whole stack is real **except the audio playback backend**:
+The whole stack is real **except the media playback backend**:
 
 * **hivemind-core** runs in-process as the master (real ACL, real
   policy-admission chain, real client isolation).
 * The **player plugin** boots a real ``ovos-audio`` ``PlaybackService`` on its
-  internal OVOS bus and routes messages to/from satellites for real.
-* The **OCP / audio backend is mocked**: the plugin is constructed with the OCP
-  player and the legacy audio service disabled (``disable_ocp=True``,
-  ``enable_old_audioservice=False``), so *no real audio plugin (mpv/vlc/…) is
-  ever loaded* and nothing touches an audio device or the network. A lightweight
-  recorder is registered on the plugin's bus in place of the OCP backend, so the
-  remote ``play`` / ``pause`` / ``stop`` control verbs are captured and asserted
-  instead of producing sound. This keeps the tests about *remote-control
-  routing* — the only thing the satellite path is responsible for.
+  internal OVOS bus, used only for its TTS engine, and routes messages
+  to/from satellites for real.
+* The **ovos-media backend is disabled** (``disable_media=True``), so *no
+  real media backend plugin (mpv/vlc/…) is ever loaded* and nothing touches
+  an audio device or the network. A lightweight recorder is registered on
+  the plugin's bus in place of the media daemon, so the remote ``play`` /
+  ``pause`` / ``stop`` control verbs are captured and asserted instead of
+  producing sound. This keeps the tests about *remote-control routing* — the
+  only thing the satellite path is responsible for. A real embedded
+  ovos-media daemon is exercised separately in ``test_embedded_media.py``.
 
 What is exercised end-to-end:
 
@@ -57,7 +58,7 @@ from hivemind_player_protocol import HiveMindPlayerProtocol
 OCP_PLAY = "ovos.common_play.play"
 OCP_PAUSE = "ovos.common_play.pause"
 OCP_STOP = "ovos.common_play.stop"
-OCP_STATUS = "ovos.common_play.player.status"
+OCP_STATUS = "ovos.common_play.status"
 
 # every control verb the satellite drives, plus the status channel used for the
 # reverse (player -> satellite) path.
@@ -109,9 +110,9 @@ def media_topology():
     agent would never be invoked).
     """
     builder = TopologyBuilder()
-    # Boot the real plugin but with NO real playback: OCP disabled and the
-    # legacy audio service off, so no audio backend plugin is ever loaded.
-    player = HiveMindPlayerProtocol(disable_ocp=True, enable_old_audioservice=False)
+    # Boot the real plugin but with no embedded ovos-media, so no media
+    # backend plugin is ever loaded.
+    player = HiveMindPlayerProtocol(disable_media=True)
     # Swap in the recording backend on the plugin's own internal bus.
     backend = MockOCPBackend(player.bus)
     master = builder.add_master("M0", agent_protocol=player)

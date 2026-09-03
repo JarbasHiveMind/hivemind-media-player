@@ -6,6 +6,7 @@ from hivemind_core.protocol import AgentProtocol
 from ovos_audio.service import PlaybackService
 from ovos_bus_client.message import Message
 from ovos_config import Configuration
+from ovos_media.service import MediaService
 from ovos_plugin_manager.tts import TTS
 from ovos_utils.fakebus import FakeBus
 from ovos_utils.log import LOG
@@ -14,35 +15,45 @@ from ovos_utils.log import LOG
 @dataclasses.dataclass()
 class HiveMindPlayerProtocol(AgentProtocol):
     bus: FakeBus = dataclasses.field(default_factory=FakeBus)
-    config: Dict[str, Any] = dataclasses.field(default_factory=lambda: Configuration().get("websocket", {}))
-    # Skip loading the OCP backend. Useful for OCP-less deployments and for
-    # tests that mock the playback backend (so no real audio plugin is loaded).
-    # Defaults to None so the ``config`` block (server.json) can set it; an
-    # explicit constructor value always wins.
-    disable_ocp: Optional[bool] = None
-    # Skip the legacy ovos-audio AudioService (the pre-OCP backend). ``None``
-    # defers to the ``config`` block, then to the OVOS
-    # ``enable_old_audioservice`` config value.
-    enable_old_audioservice: Optional[bool] = None
+    # hivemind-core's AgentProtocolFactory passes the plugin's own sub-block
+    # of server.json's ``agent_protocol`` section here (see
+    # ``hivemind_core.service.get_agent_protocol``); the empty-dict default
+    # only applies to standalone construction (tests, scripts), never to a
+    # hivemind-core-managed instance.
+    config: Dict[str, Any] = dataclasses.field(default_factory=dict)
+    # Skip loading the embedded ovos-media daemon. Useful for TTS-only
+    # deployments and for tests that mock the playback backend (so no real
+    # media backend plugin is loaded). Defaults to None so the ``config``
+    # block (server.json) can set it; an explicit constructor value always
+    # wins.
+    disable_media: Optional[bool] = None
 
     def __post_init__(self):
         # constructor args take precedence; otherwise read from the agent-plugin
         # config block (server.json -> hivemind-player-agent-plugin).
-        if self.disable_ocp is None:
-            self.disable_ocp = self.config.get("disable_ocp", False)
-        if self.enable_old_audioservice is None:
-            self.enable_old_audioservice = self.config.get("enable_old_audioservice")
+        if self.disable_media is None:
+            self.disable_media = self.config.get("disable_media", False)
 
-        if self.enable_old_audioservice is not None:
-            # PlaybackService reads this top-level config key; override it so
-            # callers can boot the plugin without the legacy audio backend (and
-            # its plugins).
-            Configuration()["enable_old_audioservice"] = self.enable_old_audioservice
+        # ovos-media is the OCP-native media daemon embedded below; the
+        # legacy ovos-audio AudioService and its own OCP integration stay off
+        # so PlaybackService is only ever exercised for its TTS engine.
+        Configuration()["enable_old_audioservice"] = False
         self.playback = PlaybackService(
             bus=self.bus,
             validate_source=False,
-            disable_ocp=self.disable_ocp,
+            disable_ocp=True,
         )
+
+        self.media = None
+        if not self.disable_media:
+            # hivemind-core NATs each client's session to a per-connection id
+            # (HIVEMIND-BRIDGE-1 §4), never to "default" — this device is a
+            # single dedicated player, so it acts on every authorized session
+            # rather than only "default".
+            self.media = MediaService(bus=self.bus, validate_source=False)
+            self.media.daemon = True
+            self.media.start()
+
         self.register_bus_handlers()
         try:
             from ovos_PHAL.service import PHAL
