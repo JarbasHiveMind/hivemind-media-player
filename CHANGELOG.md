@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.1.1a2](https://github.com/JarbasHiveMind/hivemind-media-player/tree/0.1.1a2) (2026-09-19)
+
+[Full Changelog](https://github.com/JarbasHiveMind/hivemind-media-player/compare/0.1.1a1...0.1.1a2)
+
+**Closed issues:**
+
+- Add tests / hivescope e2e \(currently 0 tests\) [\#7](https://github.com/JarbasHiveMind/hivemind-media-player/issues/7)
+
+**Merged pull requests:**
+
+- chore: stop tracking \_\_pycache\_\_ and ignore it [\#18](https://github.com/JarbasHiveMind/hivemind-media-player/pull/18) ([openvoiceos-bot](https://github.com/openvoiceos-bot))
+
 ## [0.1.1a1](https://github.com/JarbasHiveMind/hivemind-media-player/tree/0.1.1a1) (2026-09-03)
 
 [Full Changelog](https://github.com/JarbasHiveMind/hivemind-media-player/compare/0.1.0a1...0.1.1a1)
