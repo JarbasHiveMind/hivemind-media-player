@@ -45,7 +45,7 @@ def get_client(key: str, password: str, host: str, port: int) -> HiveMessageBusC
     LOG.base_path = os.path.join(xdg_state_home(), "hivemind")
     LOG.set_level("ERROR")
 
-    identity = NodeIdentity()
+    identity = NodeIdentity(app_name="media-player")
     password = password or identity.password
     key = key or identity.access_key
     host = host or identity.default_master
@@ -60,7 +60,8 @@ def get_client(key: str, password: str, host: str, port: int) -> HiveMessageBusC
                            "an identity with 'hivemind-client set-identity' or "
                            "passed all required arguments.")
 
-    node = HiveMessageBusClient(key, host=host, port=port, password=password)
+    node = HiveMessageBusClient(key, host=host, port=port, password=password,
+                                identity=identity)
     # The FakeBus is a placeholder for the local bus, as we only need to
     # connect to the remote HiveMind bus.
     node.connect(FakeBus(), site_id=siteid)

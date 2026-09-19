@@ -24,7 +24,7 @@ dependencies = [
     "ovos-tts-plugin-server",
     # 1.0.x is the proven-working line against current hivemind-core (4.13.18a1
     # needs bus-client 1.0.x); the stale <1.0.0 cap blocked that resolution.
-    "hivemind-bus-client>=1.0.16a1",
+    "hivemind-bus-client>=1.2.1a1",
     # hivemind-core's current line requires hivemind-plugin-manager>=0.9.0a7;
     # the runtime needs the same plugin host, so pin its prerelease floor too
     # — otherwise pip can only see stale, capped versions.
