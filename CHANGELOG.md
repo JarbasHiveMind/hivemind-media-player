@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.1.2a1](https://github.com/JarbasHiveMind/hivemind-media-player/tree/0.1.2a1) (2026-09-19)
+
+[Full Changelog](https://github.com/JarbasHiveMind/hivemind-media-player/compare/0.1.1a2...0.1.2a1)
+
+**Merged pull requests:**
+
+- fix: the player keeps its own HiveMind identity \(CRYPTO-1 §2\) [\#17](https://github.com/JarbasHiveMind/hivemind-media-player/pull/17) ([openvoiceos-bot](https://github.com/openvoiceos-bot))
+
 ## [0.1.1a2](https://github.com/JarbasHiveMind/hivemind-media-player/tree/0.1.1a2) (2026-09-19)
 
 [Full Changelog](https://github.com/JarbasHiveMind/hivemind-media-player/compare/0.1.1a1...0.1.1a2)
