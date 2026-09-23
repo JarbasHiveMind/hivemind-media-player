@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.1.2a2](https://github.com/JarbasHiveMind/hivemind-media-player/tree/0.1.2a2) (2026-09-23)
+
+[Full Changelog](https://github.com/JarbasHiveMind/hivemind-media-player/compare/0.1.2a1...0.1.2a2)
+
+**Merged pull requests:**
+
+- ci: stop proposing a stable release, this repository has no master branch [\#19](https://github.com/JarbasHiveMind/hivemind-media-player/pull/19) ([openvoiceos-bot](https://github.com/openvoiceos-bot))
+
 ## [0.1.2a1](https://github.com/JarbasHiveMind/hivemind-media-player/tree/0.1.2a1) (2026-09-19)
 
 [Full Changelog](https://github.com/JarbasHiveMind/hivemind-media-player/compare/0.1.1a2...0.1.2a1)
