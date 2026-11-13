@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.1.3a1](https://github.com/JarbasHiveMind/hivemind-media-player/tree/0.1.3a1) (2026-11-13)
+
+[Full Changelog](https://github.com/JarbasHiveMind/hivemind-media-player/compare/0.1.2a2...0.1.3a1)
+
+**Merged pull requests:**
+
+- fix\(tests\): drop tests/\_\_init\_\_.py so build\_tests imports the wheel [\#20](https://github.com/JarbasHiveMind/hivemind-media-player/pull/20) ([openvoiceos-bot](https://github.com/openvoiceos-bot))
+
 ## [0.1.2a2](https://github.com/JarbasHiveMind/hivemind-media-player/tree/0.1.2a2) (2026-09-23)
 
 [Full Changelog](https://github.com/JarbasHiveMind/hivemind-media-player/compare/0.1.2a1...0.1.2a2)
