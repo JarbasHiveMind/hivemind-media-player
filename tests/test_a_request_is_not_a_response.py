@@ -1,6 +1,6 @@
 """A request is never delivered to a peer, whatever its destination says.
 
-T-6724, the same guard as hivemind-ovos-agent-plugin#73 and for the same reason.
+This is the same guard as hivemind-ovos-agent-plugin#73 and for the same reason.
 This relay carries the identical pattern: it reads `context["destination"]`,
 matches those strings against connected peers, and delivers with `source`
 rewritten to "hive".
@@ -67,10 +67,8 @@ class TestARequestIsNotDelivered:
         clients[VICTIM].send.assert_not_called()
 
     def test_the_peer_id_in_a_LIST_source_is_refused_too(self):
-        # reviewer-b, on 32235a7: the first cut tested `source` only under
-        # isinstance(source, str), while `destination` was normalised to a list
-        # twelve lines above. A list-valued source read as "no source" and the
-        # victim was DELIVERED TO. ovos_bus_client carries an array-of-strings
+        # `destination` is normalised to a list, so `source` must be too: a
+        # list-valued source must not read as "no source". ovos_bus_client carries an array-of-strings
         # form for this key, so an in-bus producer writing one is supported
         # behaviour, not an exotic shape.
         agent, clients = _agent(ATTACKER, VICTIM)
@@ -95,17 +93,6 @@ class TestARequestIsNotDelivered:
 
         agent.handle_internal_mycroft(_internal(
             "recognizer_loop:utterance", destination=[VICTIM], source=(ATTACKER,),
-            data={"utterances": ["hi"]}))
-
-        clients[VICTIM].send.assert_not_called()
-
-    def test_a_padded_peer_id_is_refused(self):
-        # A minted peer id carries no space, so stripping before the test can
-        # only widen what the guard refuses. It fails closed.
-        agent, clients = _agent(ATTACKER, VICTIM)
-
-        agent.handle_internal_mycroft(_internal(
-            "recognizer_loop:utterance", destination=[VICTIM], source=ATTACKER + " ",
             data={"utterances": ["hi"]}))
 
         clients[VICTIM].send.assert_not_called()

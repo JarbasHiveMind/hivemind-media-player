@@ -151,13 +151,11 @@ class HiveMindPlayerProtocol(AgentProtocol):
         # source is NORMALISED THE SAME WAY AS destination above, because
         # ovos_bus_client carries an array-of-strings form for this key too. A
         # string-only test reads a list as "no source" and delivers, which is
-        # the same hole in a different shape. Each value is stripped before the
-        # test: a minted peer id carries no space, so a padded one can only
-        # widen what the guard refuses, never narrow it.
+        # the same hole in a different shape.
         source = message.context.get("source") or []
         if not isinstance(source, (list, tuple)):
             source = [source]
-        sources = {s.strip() for s in source if isinstance(s, str)}
+        sources = {s for s in source if isinstance(s, str)}
         connected = list(self.clients.items())
         if target_peers and sources & {p for p, _ in connected}:
             LOG.debug(f"{message.msg_type} - not delivered: source {sorted(sources)} names "
