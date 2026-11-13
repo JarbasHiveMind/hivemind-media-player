@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.1.4a1](https://github.com/JarbasHiveMind/hivemind-media-player/tree/0.1.4a1) (2026-11-13)
+
+[Full Changelog](https://github.com/JarbasHiveMind/hivemind-media-player/compare/0.1.3a1...0.1.4a1)
+
+**Merged pull requests:**
+
+- fix: a request is never delivered to a peer, whatever its destination says [\#21](https://github.com/JarbasHiveMind/hivemind-media-player/pull/21) ([openvoiceos-bot](https://github.com/openvoiceos-bot))
+
 ## [0.1.3a1](https://github.com/JarbasHiveMind/hivemind-media-player/tree/0.1.3a1) (2026-11-13)
 
 [Full Changelog](https://github.com/JarbasHiveMind/hivemind-media-player/compare/0.1.2a2...0.1.3a1)
