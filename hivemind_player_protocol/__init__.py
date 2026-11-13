@@ -130,8 +130,38 @@ class HiveMindPlayerProtocol(AgentProtocol):
         if not isinstance(target_peers, list):
             target_peers = [target_peers]
 
-        if target_peers:
-            for peer, client in self.clients.items():
+        # A REQUEST IS NEVER DELIVERED TO A PEER, whatever its destination says.
+        # hivemind-core stamps context["source"] with the peer id it minted for
+        # the connection a message arrived on, so a message whose source names a
+        # CONNECTED peer is that peer's own request travelling to the agent, or
+        # something forwarded from it -- never an answer to send to somebody. A
+        # reply carries the peer in destination and no peer in source, because
+        # Message.reply() swaps the two.
+        #
+        # Without this test, anything that writes a peer id into destination
+        # after injection -- a transformer, a skill, any other bus writer -- has
+        # this relay deliver one peer's traffic to another peer's socket with
+        # source rewritten to "hive". hivemind-core stops a CLIENT writing that
+        # key; this stops the same value arriving from inside the bus, which the
+        # node cannot police at injection.
+        #
+        # HIVEMIND-AGENT-1 §3.2 delivers a RESPONSE to the peers its destination
+        # names. A request is not a response.
+        #
+        # source is NORMALISED THE SAME WAY AS destination above, because
+        # ovos_bus_client carries an array-of-strings form for this key too. A
+        # string-only test reads a list as "no source" and delivers, which is
+        # the same hole in a different shape.
+        source = message.context.get("source") or []
+        if not isinstance(source, (list, tuple)):
+            source = [source]
+        sources = {s for s in source if isinstance(s, str)}
+        connected = list(self.clients.items())
+        if target_peers and sources & {p for p, _ in connected}:
+            LOG.debug(f"{message.msg_type} - not delivered: source {sorted(sources)} names "
+                      f"a connected peer, so this is a request and not a response")
+        elif target_peers:
+            for peer, client in connected:
                 if peer in target_peers:
                     # forward internal messages to clients if they are the target
                     LOG.debug(f"{message.msg_type} - destination: {peer}")
